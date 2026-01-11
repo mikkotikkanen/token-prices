@@ -1,171 +1,96 @@
-# Token Prices Crawler
+# Token Prices
 
-An automated system for tracking LLM pricing across providers. Prices are crawled daily and stored as change logs to minimize file size and provide historical tracking.
+Programmatic access to LLM token pricing for calculating the true cost of API requests.
 
-## Features
+## Why?
 
-- **Daily price updates** via GitHub Actions
-- **Change-based storage** - only records when prices actually change
-- **Multiple providers**: OpenAI, Anthropic, Google (Gemini), OpenRouter
-- **Custom User-Agent** (`token-prices-crawler/1.0`) for easy identification/blocking
-- **Price history** - track pricing changes over time
-- **"Knock" feature** - checks for machine-readable pricing endpoints
+When building applications with LLMs, you need to know what each request actually costs. This project provides up-to-date pricing data for major LLM providers, updated daily, so you can:
 
-## Data Structure
+- Calculate costs in real-time as requests are made
+- Track spending across different models and providers
+- Compare pricing between providers
+- Build cost dashboards and alerts
 
-Prices are stored in `data/prices/{provider}.json` with the following structure:
+## Installation
 
-```json
-{
-  "provider": "openai",
-  "lastCrawled": "2024-01-15T00:00:00.000Z",
-  "pricingUrl": "https://openai.com/api/pricing/",
-  "changes": [
-    {
-      "date": "2024-01-01",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "gpt-4o",
-        "modelName": "GPT-4o",
-        "inputPricePerMillion": 2.5,
-        "outputPricePerMillion": 10,
-        "contextWindow": 128000
-      }
-    }
-  ]
-}
+```bash
+npm install token-prices
 ```
-
-## Providers
-
-| Provider | Pricing Page | Update Schedule |
-|----------|--------------|-----------------|
-| OpenAI | https://openai.com/api/pricing/ | Daily 00:00 UTC |
-| Anthropic | https://www.anthropic.com/pricing | Daily 00:05 UTC |
-| Google | https://ai.google.dev/pricing | Daily 00:10 UTC |
-| OpenRouter | https://openrouter.ai/models | Daily 00:15 UTC |
 
 ## Usage
 
-### Installation
-
-```bash
-npm install
-npm run build
-```
-
-### Running Crawlers
-
-```bash
-# Run a specific provider
-npm run crawl:openai
-npm run crawl:anthropic
-npm run crawl:google
-npm run crawl:openrouter
-
-# Run all providers
-npm run crawl:all
-
-# Run the "knock" check for pricing endpoints
-npm run knock
-```
-
-### Running Tests
-
-```bash
-# Run unit tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-```
-
-### Local Testing (Live Crawl)
-
-Test the crawlers locally against live provider endpoints:
-
-```bash
-# Test all crawlers and save results
-npm run test:local
-
-# Test a specific provider
-npm run test:local:openai
-npm run test:local:anthropic
-npm run test:local:google
-npm run test:local:openrouter
-
-# Just show stored data without crawling
-npm run test:local:show
-```
-
-### Development Commands
-
-```bash
-# Build and run all crawlers
-npm run dev
-
-# Build and run a specific crawler
-npm run dev:openai
-npm run dev:anthropic
-npm run dev:google
-npm run dev:openrouter
-
-# Run the knock feature
-npm run dev:knock
-
-# View stored price data
-npm run show:openai
-npm run show:anthropic
-npm run show:google
-npm run show:openrouter
-```
-
-## API
-
-You can use this data programmatically:
-
 ```typescript
-import {
-  readProviderHistory,
-  getCurrentSnapshot,
-} from 'token-prices';
+import { readProviderHistory, getCurrentSnapshot } from 'token-prices';
 
 // Get current prices for a provider
 const history = await readProviderHistory('openai');
 const snapshot = getCurrentSnapshot(history);
 
-console.log(snapshot.models);
-// [
-//   { modelId: 'gpt-4o', inputPricePerMillion: 2.5, outputPricePerMillion: 10, ... },
-//   ...
-// ]
+// Find a specific model's pricing
+const gpt4o = snapshot.models.find(m => m.modelId === 'gpt-4o');
+
+// Calculate cost for a request
+const inputTokens = 1500;
+const outputTokens = 500;
+const cost =
+  (inputTokens / 1_000_000) * gpt4o.inputPricePerMillion +
+  (outputTokens / 1_000_000) * gpt4o.outputPricePerMillion;
+
+console.log(`Request cost: $${cost.toFixed(6)}`);
+```
+
+## Supported Providers
+
+| Provider | Models |
+|----------|--------|
+| OpenAI | GPT-4o, GPT-4, GPT-3.5, o1, o3-mini, etc. |
+| Anthropic | Claude Opus, Sonnet, Haiku (3, 3.5, 4) |
+| Google | Gemini 1.5, 2.0, 2.5 |
+| OpenRouter | Top 20 most popular models |
+
+## Data Format
+
+Each model includes:
+
+```typescript
+interface ModelPricing {
+  modelId: string;                    // e.g., "gpt-4o"
+  modelName: string;                  // e.g., "GPT-4o"
+  inputPricePerMillion: number;       // USD per 1M input tokens
+  outputPricePerMillion: number;      // USD per 1M output tokens
+  cachedInputPricePerMillion?: number; // USD per 1M cached tokens (if supported)
+  contextWindow?: number;             // Max context size
+  maxOutputTokens?: number;           // Max output size
+}
+```
+
+## How It Works
+
+Prices are fetched daily from provider pricing pages and stored as a changelog. Only price changes are recorded, keeping the data compact while maintaining full history.
+
+Data is stored in `data/prices/{provider}.json`.
+
+## Local Development
+
+```bash
+npm install
+npm run build
+npm test
+
+# Run crawlers locally
+npm run test:local
+npm run test:local:openai
 ```
 
 ## For LLM Providers
 
-This project uses web scraping to gather pricing data because there's no standard machine-readable format for LLM pricing.
-
-**We'd love to stop scraping your sites!** If you publish pricing in a machine-readable format, we'll use that instead.
-
-### Proposed Standard: /llm_prices.txt
-
-Similar to `robots.txt`, we propose a simple `/llm_prices.txt` file:
+We'd prefer not to scrape your sites. Consider adding `/llm_prices.txt`:
 
 ```
 # model_id,input_per_million,output_per_million,currency
 gpt-4o,2.50,10.00,USD
 gpt-4o-mini,0.15,0.60,USD
 ```
-
-The knock feature (`npm run knock`) checks if providers have added this file.
-
-## Blocking This Crawler
-
-If you'd like to block this crawler, look for the User-Agent: `token-prices-crawler/1.0`
-
-## Contributing
-
-Contributions are welcome! Please open an issue or PR.
 
 ## License
 
