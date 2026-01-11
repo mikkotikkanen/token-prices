@@ -1,0 +1,57 @@
+{
+  "name": "token-prices",
+  "version": "1.0.0",
+  "description": "Daily token price crawler for LLM providers",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "npm run build && npm run crawl:all",
+    "dev:openai": "npm run build && npm run crawl:openai",
+    "dev:anthropic": "npm run build && npm run crawl:anthropic",
+    "dev:google": "npm run build && npm run crawl:google",
+    "dev:openrouter": "npm run build && npm run crawl:openrouter",
+    "dev:knock": "npm run build && npm run knock",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "crawl:openai": "node --experimental-vm-modules dist/crawlers/openai/index.js",
+    "crawl:anthropic": "node --experimental-vm-modules dist/crawlers/anthropic/index.js",
+    "crawl:google": "node --experimental-vm-modules dist/crawlers/google/index.js",
+    "crawl:openrouter": "node --experimental-vm-modules dist/crawlers/openrouter/index.js",
+    "crawl:all": "npm run crawl:openai && npm run crawl:anthropic && npm run crawl:google && npm run crawl:openrouter",
+    "knock": "node --experimental-vm-modules dist/knock.js",
+    "show:openai": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/openai.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:anthropic": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/anthropic.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:google": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/google.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:openrouter": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/openrouter.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "test:local": "npm run build && node --experimental-vm-modules dist/test-local.js",
+    "test:local:openai": "npm run build && node --experimental-vm-modules dist/test-local.js openai",
+    "test:local:anthropic": "npm run build && node --experimental-vm-modules dist/test-local.js anthropic",
+    "test:local:google": "npm run build && node --experimental-vm-modules dist/test-local.js google",
+    "test:local:openrouter": "npm run build && node --experimental-vm-modules dist/test-local.js openrouter",
+    "test:local:show": "npm run build && node --experimental-vm-modules dist/test-local.js --show"
+  },
+  "keywords": [
+    "llm",
+    "pricing",
+    "openai",
+    "anthropic",
+    "google",
+    "openrouter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

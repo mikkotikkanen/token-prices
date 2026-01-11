@@ -1,0 +1,37 @@
+{
+  "provider": "google",
+  "lastCrawled": "2026-01-11T22:40:08.902Z",
+  "pricingUrl": "https://ai.google.dev/pricing",
+  "changes": [
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-3-pro",
+        "modelName": "Gemini 3 Pro",
+        "inputPricePerMillion": 35,
+        "outputPricePerMillion": 25
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-3",
+        "modelName": "Gemini 3",
+        "inputPricePerMillion": 35,
+        "outputPricePerMillion": 25
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5",
+        "modelName": "Gemini 2.5",
+        "inputPricePerMillion": 35,
+        "outputPricePerMillion": 25
+      }
+    }
+  ]
+}

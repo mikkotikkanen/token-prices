@@ -1,0 +1,307 @@
+{
+  "provider": "openrouter",
+  "lastCrawled": "2026-01-11T22:40:08.990Z",
+  "pricingUrl": "https://openrouter.ai/models",
+  "changes": [
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/chatgpt-4o-latest",
+        "modelName": "OpenAI: ChatGPT-4o",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 15,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "OpenAI ChatGPT 4o is continually updated by OpenAI to point to the current version of GPT-4o used by ChatGPT. It therefore differs slightly from the API version of [GPT-4o](/models/openai/gpt-4o) in that it has additional RLHF. It is intended for research and evaluation.\n\nOpenAI notes that this model is not suited for production use-cases as it may be removed or redirected to another model in the future."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/codex-mini",
+        "modelName": "OpenAI: Codex Mini",
+        "inputPricePerMillion": 1.5,
+        "outputPricePerMillion": 6,
+        "contextWindow": 200000,
+        "maxOutputTokens": 100000,
+        "metadata": {
+          "description": "codex-mini-latest is a fine-tuned version of o4-mini specifically for use in Codex CLI. For direct use in the API, we recommend starting with gpt-4.1."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-3.5-turbo",
+        "modelName": "OpenAI: GPT-3.5 Turbo",
+        "inputPricePerMillion": 0.5,
+        "outputPricePerMillion": 1.5,
+        "contextWindow": 16385,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "GPT-3.5 Turbo is OpenAI's fastest model. It can understand and generate natural language or code, and is optimized for chat and traditional completion tasks.\n\nTraining data up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-3.5-turbo-0613",
+        "modelName": "OpenAI: GPT-3.5 Turbo (older v0613)",
+        "inputPricePerMillion": 1,
+        "outputPricePerMillion": 2,
+        "contextWindow": 4095,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "GPT-3.5 Turbo is OpenAI's fastest model. It can understand and generate natural language or code, and is optimized for chat and traditional completion tasks.\n\nTraining data up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-3.5-turbo-16k",
+        "modelName": "OpenAI: GPT-3.5 Turbo 16k",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 4,
+        "contextWindow": 16385,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "This model offers four times the context length of gpt-3.5-turbo, allowing it to support approximately 20 pages of text in a single request at a higher cost. Training data: up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-3.5-turbo-instruct",
+        "modelName": "OpenAI: GPT-3.5 Turbo Instruct",
+        "inputPricePerMillion": 1.5,
+        "outputPricePerMillion": 2,
+        "contextWindow": 4095,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "This model is a variant of GPT-3.5 Turbo tuned for instructional prompts and omitting chat-related optimizations. Training data: up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4",
+        "modelName": "OpenAI: GPT-4",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 60,
+        "contextWindow": 8191,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "OpenAI's flagship model, GPT-4 is a large-scale multimodal language model capable of solving difficult problems with greater accuracy than previous models due to its broader general knowledge and advanced reasoning capabilities. Training data: up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4-0314",
+        "modelName": "OpenAI: GPT-4 (older v0314)",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 60,
+        "contextWindow": 8191,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "GPT-4-0314 is the first version of GPT-4 released, with a context length of 8,192 tokens, and was supported until June 14. Training data: up to Sep 2021."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4-1106-preview",
+        "modelName": "OpenAI: GPT-4 Turbo (older v1106)",
+        "inputPricePerMillion": 10,
+        "outputPricePerMillion": 30,
+        "contextWindow": 128000,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.\n\nTraining data: up to April 2023."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4-turbo",
+        "modelName": "OpenAI: GPT-4 Turbo",
+        "inputPricePerMillion": 10,
+        "outputPricePerMillion": 30,
+        "contextWindow": 128000,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.\n\nTraining data: up to December 2023."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4-turbo-preview",
+        "modelName": "OpenAI: GPT-4 Turbo Preview",
+        "inputPricePerMillion": 10,
+        "outputPricePerMillion": 30,
+        "contextWindow": 128000,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "The preview GPT-4 model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Training data: up to Dec 2023.\n\n**Note:** heavily rate limited by OpenAI while in preview."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4.1",
+        "modelName": "OpenAI: GPT-4.1",
+        "inputPricePerMillion": 2,
+        "outputPricePerMillion": 8,
+        "contextWindow": 1047576,
+        "maxOutputTokens": 32768,
+        "metadata": {
+          "description": "GPT-4.1 is a flagship large language model optimized for advanced instruction following, real-world software engineering, and long-context reasoning. It supports a 1 million token context window and outperforms GPT-4o and GPT-4.5 across coding (54.6% SWE-bench Verified), instruction compliance (87.4% IFEval), and multimodal understanding benchmarks. It is tuned for precise code diffs, agent reliability, and high recall in large document contexts, making it ideal for agents, IDE tooling, and enterprise knowledge retrieval."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4.1-mini",
+        "modelName": "OpenAI: GPT-4.1 Mini",
+        "inputPricePerMillion": 0.4,
+        "outputPricePerMillion": 1.6,
+        "contextWindow": 1047576,
+        "maxOutputTokens": 32768,
+        "metadata": {
+          "description": "GPT-4.1 Mini is a mid-sized model delivering performance competitive with GPT-4o at substantially lower latency and cost. It retains a 1 million token context window and scores 45.1% on hard instruction evals, 35.8% on MultiChallenge, and 84.1% on IFEval. Mini also shows strong coding ability (e.g., 31.6% on Aider’s polyglot diff benchmark) and vision understanding, making it suitable for interactive applications with tight performance constraints."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4.1-nano",
+        "modelName": "OpenAI: GPT-4.1 Nano",
+        "inputPricePerMillion": 0.1,
+        "outputPricePerMillion": 0.4,
+        "contextWindow": 1047576,
+        "maxOutputTokens": 32768,
+        "metadata": {
+          "description": "For tasks that demand low latency, GPT‑4.1 nano is the fastest and cheapest model in the GPT-4.1 series. It delivers exceptional performance at a small size with its 1 million token context window, and scores 80.1% on MMLU, 50.3% on GPQA, and 9.8% on Aider polyglot coding – even higher than GPT‑4o mini. It’s ideal for tasks like classification or autocompletion."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o",
+        "modelName": "OpenAI: GPT-4o",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 10,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)\n\n#multimodal"
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o-2024-05-13",
+        "modelName": "OpenAI: GPT-4o (2024-05-13)",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 15,
+        "contextWindow": 128000,
+        "maxOutputTokens": 4096,
+        "metadata": {
+          "description": "GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)\n\n#multimodal"
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o-2024-08-06",
+        "modelName": "OpenAI: GPT-4o (2024-08-06)",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 10,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "The 2024-08-06 version of GPT-4o offers improved performance in structured outputs, with the ability to supply a JSON schema in the respone_format. Read more [here](https://openai.com/index/introducing-structured-outputs-in-the-api/).\n\nGPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)"
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o-2024-11-20",
+        "modelName": "OpenAI: GPT-4o (2024-11-20)",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 10,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "The 2024-11-20 version of GPT-4o offers a leveled-up creative writing ability with more natural, engaging, and tailored writing to improve relevance & readability. It’s also better at working with uploaded files, providing deeper insights & more thorough responses.\n\nGPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o-audio-preview",
+        "modelName": "OpenAI: GPT-4o Audio",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 10,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "The gpt-4o-audio-preview model adds support for audio inputs as prompts. This enhancement allows the model to detect nuances within audio recordings and add depth to generated user experiences. Audio outputs are currently not supported. Audio tokens are priced at $40 per million input audio tokens."
+        }
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-4o-mini",
+        "modelName": "OpenAI: GPT-4o-mini",
+        "inputPricePerMillion": 0.15,
+        "outputPricePerMillion": 0.6,
+        "contextWindow": 128000,
+        "maxOutputTokens": 16384,
+        "metadata": {
+          "description": "GPT-4o mini is OpenAI's newest model after [GPT-4 Omni](/models/openai/gpt-4o), supporting both text and image inputs with text outputs.\n\nAs their most advanced small model, it is many multiples more affordable than other recent frontier models, and more than 60% cheaper than [GPT-3.5 Turbo](/models/openai/gpt-3.5-turbo). It maintains SOTA intelligence, while being significantly more cost-effective.\n\nGPT-4o mini achieves an 82% score on MMLU and presently ranks higher than GPT-4 on chat preferences [common leaderboards](https://arena.lmsys.org/).\n\nCheck out the [launch announcement](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/) to learn more.\n\n#multimodal"
+        }
+      }
+    }
+  ]
+}

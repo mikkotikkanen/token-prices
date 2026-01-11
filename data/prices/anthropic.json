@@ -1,0 +1,88 @@
+{
+  "provider": "anthropic",
+  "lastCrawled": "2026-01-11T22:40:08.202Z",
+  "pricingUrl": "https://www.anthropic.com/pricing",
+  "changes": [
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-opus-4",
+        "modelName": "Claude Opus 4",
+        "inputPricePerMillion": 15,
+        "outputPricePerMillion": 75,
+        "contextWindow": 200000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-sonnet-4",
+        "modelName": "Claude Sonnet 4",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 15,
+        "contextWindow": 200000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-3.5-sonnet",
+        "modelName": "Claude 3.5 Sonnet",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 15,
+        "contextWindow": 200000,
+        "cachedInputPricePerMillion": 0.3
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-3.5-haiku",
+        "modelName": "Claude 3.5 Haiku",
+        "inputPricePerMillion": 0.8,
+        "outputPricePerMillion": 4,
+        "contextWindow": 200000,
+        "cachedInputPricePerMillion": 0.08
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-3-opus",
+        "modelName": "Claude 3 Opus",
+        "inputPricePerMillion": 15,
+        "outputPricePerMillion": 75,
+        "contextWindow": 200000,
+        "cachedInputPricePerMillion": 1.5
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-3-sonnet",
+        "modelName": "Claude 3 Sonnet",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 15,
+        "contextWindow": 200000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-3-haiku",
+        "modelName": "Claude 3 Haiku",
+        "inputPricePerMillion": 0.25,
+        "outputPricePerMillion": 1.25,
+        "contextWindow": 200000,
+        "cachedInputPricePerMillion": 0.03
+      }
+    }
+  ]
+}

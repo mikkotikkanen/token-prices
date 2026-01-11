@@ -1,0 +1,106 @@
+{
+  "provider": "openai",
+  "lastCrawled": "2026-01-11T22:40:07.752Z",
+  "pricingUrl": "https://openai.com/api/pricing/",
+  "changes": [
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-4o",
+        "modelName": "GPT-4o",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 10,
+        "contextWindow": 128000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-4o-mini",
+        "modelName": "GPT-4o mini",
+        "inputPricePerMillion": 0.15,
+        "outputPricePerMillion": 0.6,
+        "contextWindow": 128000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-4-turbo",
+        "modelName": "GPT-4 Turbo",
+        "inputPricePerMillion": 10,
+        "outputPricePerMillion": 30,
+        "contextWindow": 128000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-4",
+        "modelName": "GPT-4",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 60,
+        "contextWindow": 8192
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-3.5-turbo",
+        "modelName": "GPT-3.5 Turbo",
+        "inputPricePerMillion": 0.5,
+        "outputPricePerMillion": 1.5,
+        "contextWindow": 16385
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "o1",
+        "modelName": "o1",
+        "inputPricePerMillion": 15,
+        "outputPricePerMillion": 60,
+        "contextWindow": 200000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "o1-mini",
+        "modelName": "o1-mini",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 12,
+        "contextWindow": 128000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "o1-pro",
+        "modelName": "o1-pro",
+        "inputPricePerMillion": 150,
+        "outputPricePerMillion": 600,
+        "contextWindow": 200000
+      }
+    },
+    {
+      "date": "2026-01-11",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "o3-mini",
+        "modelName": "o3-mini",
+        "inputPricePerMillion": 1.1,
+        "outputPricePerMillion": 4.4,
+        "contextWindow": 200000
+      }
+    }
+  ]
+}
