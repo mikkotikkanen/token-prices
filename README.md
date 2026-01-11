@@ -32,6 +32,25 @@ interface ModelPricing {
 
 Prices are fetched daily from provider pricing pages. Only changes are recorded, keeping full history while staying compact.
 
+## Contributing
+
+Contributions welcome! You can help by:
+
+- Adding new providers
+- Improving price parsing accuracy
+- Reporting incorrect prices
+- Suggesting features
+
+```bash
+# Setup
+npm install
+npm run build
+npm test
+
+# Test crawlers locally
+npm run test:local
+```
+
 ## For LLM Providers
 
 We'd prefer not to scrape. Consider adding `/llm_prices.txt`:
