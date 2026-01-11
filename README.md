@@ -32,6 +32,10 @@ interface ModelPricing {
 
 Prices are fetched daily from provider pricing pages. Only changes are recorded, keeping full history while staying compact.
 
+## Roadmap
+
+- [ ] npm module for programmatic access (API TBD)
+
 ## Contributing
 
 Contributions welcome! You can help by:
