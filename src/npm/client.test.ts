@@ -61,7 +61,7 @@ describe('CostClient', () => {
       expect(result.modelId).toBe('gpt-4o');
       expect(result.pricing.input).toBe(2.5);
       expect(result.pricing.output).toBe(10);
-      expect(result.pricing.context).toBe(128000);
+      expect(result.pricing.cached).toBe(1.25);
       expect(result.date).toBe(openaiData.current.date);
       expect(result.stale).toBe(false);
     });
@@ -71,7 +71,7 @@ describe('CostClient', () => {
 
       expect(result.pricing.input).toBe(0.15);
       expect(result.pricing.output).toBe(0.6);
-      expect(result.pricing.context).toBe(128000);
+      expect(result.pricing.cached).toBe(0.075);
     });
 
     it('should return correct pricing for OpenAI o1-pro (most expensive)', async () => {
@@ -79,7 +79,6 @@ describe('CostClient', () => {
 
       expect(result.pricing.input).toBe(150);
       expect(result.pricing.output).toBe(600);
-      expect(result.pricing.context).toBe(200000);
     });
 
     it('should return correct pricing for Anthropic claude-sonnet-4', async () => {
@@ -88,20 +87,19 @@ describe('CostClient', () => {
       expect(result.provider).toBe('anthropic');
       expect(result.pricing.input).toBe(3);
       expect(result.pricing.output).toBe(15);
-      expect(result.pricing.context).toBe(200000);
-    });
-
-    it('should return cached pricing for Anthropic claude-3.5-sonnet', async () => {
-      const result = await client.getModelPricing('anthropic', 'claude-3.5-sonnet');
-
-      expect(result.pricing.input).toBe(3);
-      expect(result.pricing.output).toBe(15);
       expect(result.pricing.cached).toBe(0.3);
-      expect(result.pricing.context).toBe(200000);
     });
 
-    it('should return cached pricing for Anthropic claude-3-haiku', async () => {
-      const result = await client.getModelPricing('anthropic', 'claude-3-haiku');
+    it('should return cached pricing for Anthropic claude-opus-4.5', async () => {
+      const result = await client.getModelPricing('anthropic', 'claude-opus-4.5');
+
+      expect(result.pricing.input).toBe(5);
+      expect(result.pricing.output).toBe(25);
+      expect(result.pricing.cached).toBe(0.5);
+    });
+
+    it('should return cached pricing for Anthropic claude-haiku-3', async () => {
+      const result = await client.getModelPricing('anthropic', 'claude-haiku-3');
 
       expect(result.pricing.input).toBe(0.25);
       expect(result.pricing.output).toBe(1.25);
@@ -165,13 +163,13 @@ describe('CostClient', () => {
     });
 
     it('should use cached pricing when available and specified', async () => {
-      const result = await client.calculateCost('anthropic', 'claude-3.5-sonnet', {
+      const result = await client.calculateCost('anthropic', 'claude-sonnet-4', {
         inputTokens: 1_000_000,
         outputTokens: 500_000,
         cachedInputTokens: 800_000,
       });
 
-      // claude-3.5-sonnet: $3/M input, $15/M output, $0.3/M cached
+      // claude-sonnet-4: $3/M input, $15/M output, $0.3/M cached
       // 200K regular input = $0.6, 800K cached = $0.24, 500K output = $7.5
       expect(result.inputCost).toBeCloseTo(0.6 + 0.24, 6);
       expect(result.outputCost).toBeCloseTo(7.5, 6);
@@ -179,17 +177,17 @@ describe('CostClient', () => {
       expect(result.usedCachedPricing).toBe(true);
     });
 
-    it('should use regular pricing for cached tokens when model has no cached price', async () => {
+    it('should use cached pricing for gpt-4o when available', async () => {
       const result = await client.calculateCost('openai', 'gpt-4o', {
         inputTokens: 1_000_000,
         outputTokens: 0,
         cachedInputTokens: 500_000,
       });
 
-      // gpt-4o has no cached pricing, so all input uses regular price
-      // 1M tokens at $2.5/M = $2.5
-      expect(result.inputCost).toBe(2.5);
-      expect(result.usedCachedPricing).toBe(false);
+      // gpt-4o: $2.5/M input, $1.25/M cached
+      // 500K regular input = $1.25, 500K cached = $0.625
+      expect(result.inputCost).toBeCloseTo(1.25 + 0.625, 6);
+      expect(result.usedCachedPricing).toBe(true);
     });
 
     it('should include date and stale flag', async () => {
@@ -209,27 +207,26 @@ describe('CostClient', () => {
 
       expect(models).toContain('gpt-4o');
       expect(models).toContain('gpt-4o-mini');
-      expect(models).toContain('gpt-4-turbo');
-      expect(models).toContain('gpt-4');
-      expect(models).toContain('gpt-3.5-turbo');
+      expect(models).toContain('gpt-5.2');
+      expect(models).toContain('gpt-5');
       expect(models).toContain('o1');
       expect(models).toContain('o1-mini');
       expect(models).toContain('o1-pro');
       expect(models).toContain('o3-mini');
-      expect(models.length).toBe(9);
+      expect(models.length).toBe(33);
     });
 
     it('should list all Anthropic models', async () => {
       const models = await client.listModels('anthropic');
 
+      expect(models).toContain('claude-opus-4.5');
       expect(models).toContain('claude-opus-4');
       expect(models).toContain('claude-sonnet-4');
-      expect(models).toContain('claude-3.5-sonnet');
-      expect(models).toContain('claude-3.5-haiku');
-      expect(models).toContain('claude-3-opus');
-      expect(models).toContain('claude-3-sonnet');
-      expect(models).toContain('claude-3-haiku');
-      expect(models.length).toBe(7);
+      expect(models).toContain('claude-sonnet-4.5');
+      expect(models).toContain('claude-haiku-4.5');
+      expect(models).toContain('claude-haiku-3.5');
+      expect(models).toContain('claude-haiku-3');
+      expect(models.length).toBe(10);
     });
   });
 
@@ -288,7 +285,7 @@ describe('CostClient', () => {
       expect(fetchCount).toBe(2);
 
       // Same provider again should use cache
-      await cachingClient.getModelPricing('anthropic', 'claude-3-haiku');
+      await cachingClient.getModelPricing('anthropic', 'claude-haiku-3');
       expect(fetchCount).toBe(2);
     });
   });
@@ -542,11 +539,11 @@ describe('Price verification against known values', () => {
     const expectedPrices: Record<string, { input: number; output: number }> = {
       'gpt-4o': { input: 2.5, output: 10 },
       'gpt-4o-mini': { input: 0.15, output: 0.6 },
-      'gpt-4-turbo': { input: 10, output: 30 },
-      'gpt-4': { input: 30, output: 60 },
-      'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
+      'gpt-5.2': { input: 1.75, output: 14 },
+      'gpt-5': { input: 1.25, output: 10 },
+      'gpt-5-mini': { input: 0.25, output: 2 },
       'o1': { input: 15, output: 60 },
-      'o1-mini': { input: 3, output: 12 },
+      'o1-mini': { input: 1.1, output: 4.4 },
       'o1-pro': { input: 150, output: 600 },
       'o3-mini': { input: 1.1, output: 4.4 },
     };
@@ -560,13 +557,13 @@ describe('Price verification against known values', () => {
 
   it('should have correct Anthropic prices with cached pricing', async () => {
     const expectedPrices: Record<string, { input: number; output: number; cached?: number }> = {
-      'claude-opus-4': { input: 15, output: 75 },
-      'claude-sonnet-4': { input: 3, output: 15 },
-      'claude-3.5-sonnet': { input: 3, output: 15, cached: 0.3 },
-      'claude-3.5-haiku': { input: 0.8, output: 4, cached: 0.08 },
-      'claude-3-opus': { input: 15, output: 75, cached: 1.5 },
-      'claude-3-sonnet': { input: 3, output: 15 },
-      'claude-3-haiku': { input: 0.25, output: 1.25, cached: 0.03 },
+      'claude-opus-4.5': { input: 5, output: 25, cached: 0.5 },
+      'claude-opus-4': { input: 15, output: 75, cached: 1.5 },
+      'claude-sonnet-4': { input: 3, output: 15, cached: 0.3 },
+      'claude-sonnet-4.5': { input: 3, output: 15, cached: 0.3 },
+      'claude-haiku-4.5': { input: 1, output: 5, cached: 0.1 },
+      'claude-haiku-3.5': { input: 0.8, output: 4, cached: 0.08 },
+      'claude-haiku-3': { input: 0.25, output: 1.25, cached: 0.03 },
     };
 
     for (const [modelId, expected] of Object.entries(expectedPrices)) {
