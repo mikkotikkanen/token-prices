@@ -2,44 +2,55 @@
   "current": {
     "date": "2026-01-12",
     "models": {
+      "claude-opus-4.5": {
+        "input": 5,
+        "output": 25,
+        "cached": 0.5
+      },
+      "claude-opus-4.1": {
+        "input": 15,
+        "output": 75,
+        "cached": 1.5
+      },
       "claude-opus-4": {
         "input": 15,
         "output": 75,
-        "context": 200000
+        "cached": 1.5
+      },
+      "claude-sonnet-4.5": {
+        "input": 3,
+        "output": 15,
+        "cached": 0.3
       },
       "claude-sonnet-4": {
         "input": 3,
         "output": 15,
-        "context": 200000
+        "cached": 0.3
       },
-      "claude-3.5-sonnet": {
+      "claude-sonnet-3.7-deprecated": {
         "input": 3,
         "output": 15,
-        "cached": 0.3,
-        "context": 200000
+        "cached": 0.3
       },
-      "claude-3.5-haiku": {
+      "claude-haiku-4.5": {
+        "input": 1,
+        "output": 5,
+        "cached": 0.1
+      },
+      "claude-haiku-3.5": {
         "input": 0.8,
         "output": 4,
-        "cached": 0.08,
-        "context": 200000
+        "cached": 0.08
       },
-      "claude-3-opus": {
+      "claude-opus-3-deprecated": {
         "input": 15,
         "output": 75,
-        "cached": 1.5,
-        "context": 200000
+        "cached": 1.5
       },
-      "claude-3-sonnet": {
-        "input": 3,
-        "output": 15,
-        "context": 200000
-      },
-      "claude-3-haiku": {
+      "claude-haiku-3": {
         "input": 0.25,
         "output": 1.25,
-        "cached": 0.03,
-        "context": 200000
+        "cached": 0.03
       }
     }
   },
