@@ -16,31 +16,45 @@ describe('AnthropicCrawler', () => {
   });
 
   describe('crawlPrices', () => {
-    it('should parse prices from HTML table with headers', async () => {
+    it('should parse prices from platform.claude.com pricing table', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
+      // Simulate the actual Anthropic pricing page format
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
             <table>
-              <thead>
-                <tr>
-                  <th>Model</th>
-                  <th>Input</th>
-                  <th>Output</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Claude 3.5 Sonnet</td>
-                  <td>$3.00 / MTok</td>
-                  <td>$15.00 / MTok</td>
-                </tr>
-                <tr>
-                  <td>Claude 3 Opus</td>
-                  <td>$15.00 / MTok</td>
-                  <td>$75.00 / MTok</td>
-                </tr>
-              </tbody>
+              <tr>
+                <td>Model</td>
+                <td>Base Input Tokens</td>
+                <td>5m Cache Writes</td>
+                <td>1h Cache Writes</td>
+                <td>Cache Hits & Refreshes</td>
+                <td>Output Tokens</td>
+              </tr>
+              <tr>
+                <td>Claude Opus 4.5</td>
+                <td>$5 / MTok</td>
+                <td>$6.25 / MTok</td>
+                <td>$10 / MTok</td>
+                <td>$0.50 / MTok</td>
+                <td>$25 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Opus 4.1</td>
+                <td>$15 / MTok</td>
+                <td>$18.75 / MTok</td>
+                <td>$30 / MTok</td>
+                <td>$1.50 / MTok</td>
+                <td>$75 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Opus 4</td>
+                <td>$15 / MTok</td>
+                <td>$18.75 / MTok</td>
+                <td>$30 / MTok</td>
+                <td>$1.50 / MTok</td>
+                <td>$75 / MTok</td>
+              </tr>
             </table>
           </body>
         </html>
@@ -48,34 +62,57 @@ describe('AnthropicCrawler', () => {
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices.length).toBeGreaterThanOrEqual(2);
+      expect(prices.length).toBeGreaterThanOrEqual(3);
 
-      const sonnet = prices.find(p => p.modelId.includes('sonnet'));
-      expect(sonnet).toBeDefined();
-      expect(sonnet?.inputPricePerMillion).toBe(3);
-      expect(sonnet?.outputPricePerMillion).toBe(15);
+      const opus45 = prices.find(p => p.modelId === 'claude-opus-4.5');
+      expect(opus45).toBeDefined();
+      expect(opus45?.inputPricePerMillion).toBe(5);
+      expect(opus45?.outputPricePerMillion).toBe(25);
+      expect(opus45?.cachedInputPricePerMillion).toBe(0.5);
     });
 
-    it('should parse Claude models from pricing cards', async () => {
+    it('should include cached input pricing from Cache Hits column', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <div class="pricing-card">
-              <h3>Claude 3 Haiku</h3>
-              <p>Input: $0.25/M Output: $1.25/M</p>
-            </div>
-            <div class="model-card">
-              <span>Claude Sonnet</span>
-              <span>$3.00/MTok input, $15.00/MTok output</span>
-            </div>
+            <table>
+              <tr>
+                <td>Claude Opus 4.5</td>
+                <td>$5 / MTok</td>
+                <td>$6.25 / MTok</td>
+                <td>$10 / MTok</td>
+                <td>$0.50 / MTok</td>
+                <td>$25 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Opus 4.1</td>
+                <td>$15 / MTok</td>
+                <td>$18.75 / MTok</td>
+                <td>$30 / MTok</td>
+                <td>$1.50 / MTok</td>
+                <td>$75 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Sonnet 4</td>
+                <td>$3 / MTok</td>
+                <td>$3.75 / MTok</td>
+                <td>$6 / MTok</td>
+                <td>$0.30 / MTok</td>
+                <td>$15 / MTok</td>
+              </tr>
+            </table>
           </body>
         </html>
       `);
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices.length).toBeGreaterThan(0);
+      const opus45 = prices.find(p => p.modelId === 'claude-opus-4.5');
+      expect(opus45?.cachedInputPricePerMillion).toBe(0.5);
+
+      const opus41 = prices.find(p => p.modelId === 'claude-opus-4.1');
+      expect(opus41?.cachedInputPricePerMillion).toBe(1.5);
     });
 
     it('should throw error when HTML parsing fails', async () => {
@@ -98,27 +135,26 @@ describe('AnthropicCrawler', () => {
       await expect(crawler.crawlPrices()).rejects.toThrow('403 Forbidden');
     });
 
-    it('should deduplicate models', async () => {
+    it('should throw error when too few models found', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
             <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr><td>Claude 3 Opus</td><td>$15.00/M</td><td>$75.00/M</td></tr>
-                <tr><td>Claude 3 Opus</td><td>$15.00/M</td><td>$75.00/M</td></tr>
-                <tr><td>Claude 3 Sonnet</td><td>$3.00/M</td><td>$15.00/M</td></tr>
-              </tbody>
+              <tr>
+                <td>Claude Opus 4.5</td>
+                <td>$5 / MTok</td>
+                <td>$6.25 / MTok</td>
+                <td>$10 / MTok</td>
+                <td>$0.50 / MTok</td>
+                <td>$25 / MTok</td>
+              </tr>
             </table>
           </body>
         </html>
       `);
 
-      const prices = await crawler.crawlPrices();
-
-      const opusCount = prices.filter(p => p.modelId.includes('opus')).length;
-      expect(opusCount).toBeLessThanOrEqual(1);
+      await expect(crawler.crawlPrices()).rejects.toThrow('expected at least 3');
     });
 
     it('should normalize model IDs', async () => {
@@ -127,12 +163,30 @@ describe('AnthropicCrawler', () => {
         <html>
           <body>
             <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr><td>Claude 3.5 Sonnet</td><td>$3.00/M</td><td>$15.00/M</td></tr>
-                <tr><td>Claude 3 OPUS</td><td>$15.00/M</td><td>$75.00/M</td></tr>
-                <tr><td>claude-3-haiku</td><td>$0.25/M</td><td>$1.25/M</td></tr>
-              </tbody>
+              <tr>
+                <td>Claude Opus 4.5</td>
+                <td>$5 / MTok</td>
+                <td>$6.25 / MTok</td>
+                <td>$10 / MTok</td>
+                <td>$0.50 / MTok</td>
+                <td>$25 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Opus 4.1</td>
+                <td>$15 / MTok</td>
+                <td>$18.75 / MTok</td>
+                <td>$30 / MTok</td>
+                <td>$1.50 / MTok</td>
+                <td>$75 / MTok</td>
+              </tr>
+              <tr>
+                <td>Claude Sonnet 4</td>
+                <td>$3 / MTok</td>
+                <td>$3.75 / MTok</td>
+                <td>$6 / MTok</td>
+                <td>$0.30 / MTok</td>
+                <td>$15 / MTok</td>
+              </tr>
             </table>
           </body>
         </html>
@@ -143,28 +197,7 @@ describe('AnthropicCrawler', () => {
       // Model IDs should be lowercase with dashes
       expect(prices.every(p => p.modelId === p.modelId.toLowerCase())).toBe(true);
       expect(prices.every(p => !p.modelId.includes(' '))).toBe(true);
-    });
-
-    it('should handle price scale detection', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockResolvedValueOnce(`
-        <html>
-          <body>
-            <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr><td>Claude 3.5 Sonnet</td><td>$3.00 per million</td><td>$15.00 per million</td></tr>
-              </tbody>
-            </table>
-          </body>
-        </html>
-      `);
-
-      const prices = await crawler.crawlPrices();
-
-      const sonnet = prices.find(p => p.modelId.includes('sonnet'));
-      expect(sonnet?.inputPricePerMillion).toBe(3);
-      expect(sonnet?.outputPricePerMillion).toBe(15);
+      expect(prices.some(p => p.modelId === 'claude-opus-4.5')).toBe(true);
     });
   });
 });

@@ -1,86 +1,115 @@
 {
   "provider": "anthropic",
-  "lastCrawled": "2026-01-12T08:46:30.798Z",
-  "pricingUrl": "https://www.anthropic.com/pricing",
+  "lastCrawled": "2026-01-12T15:54:15.498Z",
+  "pricingUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
   "changes": [
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-opus-4.5",
+        "modelName": "Claude Opus 4.5",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 25,
+        "cachedInputPricePerMillion": 0.5
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-opus-4.1",
+        "modelName": "Claude Opus 4.1",
+        "inputPricePerMillion": 15,
+        "outputPricePerMillion": 75,
+        "cachedInputPricePerMillion": 1.5
+      }
+    },
+    {
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
         "modelId": "claude-opus-4",
         "modelName": "Claude Opus 4",
         "inputPricePerMillion": 15,
         "outputPricePerMillion": 75,
-        "contextWindow": 200000
+        "cachedInputPricePerMillion": 1.5
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-sonnet-4.5",
+        "modelName": "Claude Sonnet 4.5",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.3
+      }
+    },
+    {
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
         "modelId": "claude-sonnet-4",
         "modelName": "Claude Sonnet 4",
         "inputPricePerMillion": 3,
         "outputPricePerMillion": 15,
-        "contextWindow": 200000
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "claude-3.5-sonnet",
-        "modelName": "Claude 3.5 Sonnet",
-        "inputPricePerMillion": 3,
-        "outputPricePerMillion": 15,
-        "contextWindow": 200000,
         "cachedInputPricePerMillion": 0.3
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "claude-3.5-haiku",
-        "modelName": "Claude 3.5 Haiku",
+        "modelId": "claude-sonnet-3.7-deprecated",
+        "modelName": "Claude Sonnet 3.7 (deprecated)",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.3
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-haiku-4.5",
+        "modelName": "Claude Haiku 4.5",
+        "inputPricePerMillion": 1,
+        "outputPricePerMillion": 5,
+        "cachedInputPricePerMillion": 0.1
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "claude-haiku-3.5",
+        "modelName": "Claude Haiku 3.5",
         "inputPricePerMillion": 0.8,
         "outputPricePerMillion": 4,
-        "contextWindow": 200000,
         "cachedInputPricePerMillion": 0.08
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "claude-3-opus",
-        "modelName": "Claude 3 Opus",
+        "modelId": "claude-opus-3-deprecated",
+        "modelName": "Claude Opus 3 (deprecated)",
         "inputPricePerMillion": 15,
         "outputPricePerMillion": 75,
-        "contextWindow": 200000,
         "cachedInputPricePerMillion": 1.5
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "claude-3-sonnet",
-        "modelName": "Claude 3 Sonnet",
-        "inputPricePerMillion": 3,
-        "outputPricePerMillion": 15,
-        "contextWindow": 200000
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "claude-3-haiku",
-        "modelName": "Claude 3 Haiku",
+        "modelId": "claude-haiku-3",
+        "modelName": "Claude Haiku 3",
         "inputPricePerMillion": 0.25,
         "outputPricePerMillion": 1.25,
-        "contextWindow": 200000,
         "cachedInputPricePerMillion": 0.03
       }
     }
