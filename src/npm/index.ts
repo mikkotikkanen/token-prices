@@ -1,21 +1,39 @@
 /**
- * Token Prices - Daily LLM pricing data
+ * Token Costs - Daily LLM pricing data
  *
  * @example
  * ```ts
- * import { getModelPricing, calculateCost } from 'token-costs';
+ * import { PricingClient } from 'token-costs';
+ *
+ * // Create a client (fetches from remote API)
+ * const client = new PricingClient();
  *
  * // Get pricing for a model
- * const result = await getModelPricing('openai', 'gpt-4o');
+ * const result = await client.getModelPricing('openai', 'gpt-4o');
  * console.log(`Input: $${result.pricing.input}/M tokens`);
  * console.log(`Output: $${result.pricing.output}/M tokens`);
  *
  * // Calculate cost for an API call
- * const cost = await calculateCost('anthropic', 'claude-sonnet-4', {
+ * const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
  *   inputTokens: 1500,
  *   outputTokens: 800,
  * });
  * console.log(`Total cost: $${cost.totalCost.toFixed(6)}`);
+ *
+ * // With custom providers
+ * const customClient = new PricingClient({
+ *   customProviders: {
+ *     'my-company': {
+ *       'internal-llm': { input: 0.50, output: 1.00 }
+ *     }
+ *   }
+ * });
+ *
+ * // Offline mode (no remote fetching)
+ * const offlineClient = new PricingClient({
+ *   offline: true,
+ *   customProviders: { ... }
+ * });
  * ```
  *
  * @packageDocumentation
@@ -27,16 +45,12 @@ export type {
   ProviderData,
   ProviderFile,
   Provider,
+  BuiltInProvider,
   PricingClientOptions,
   PriceLookupResult,
   CostResult,
+  CustomProviderModels,
 } from './types.js';
 
 // Re-export client
-export {
-  PricingClient,
-  ClockMismatchError,
-  getDefaultClient,
-  getModelPricing,
-  calculateCost,
-} from './client.js';
+export { PricingClient, ClockMismatchError } from './client.js';

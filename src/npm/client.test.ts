@@ -235,11 +235,17 @@ describe('PricingClient', () => {
 
   describe('stale flag', () => {
     it('should mark data as stale when client date is ahead of data date', async () => {
-      // Create client with time set to tomorrow
+      // Create client with time set to 1 day after data date (noon)
+      // This gives daysDiff = 1, which passes the >1 check but sets stale=true
       const staleClient = new PricingClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
-        timeOffsetMs: 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000, // Tomorrow noon
+        timeOffsetMs: (() => {
+          const dataDate = new Date(openaiData.current.date + 'T00:00:00Z').getTime();
+          const now = Date.now();
+          // Set to noon on the day AFTER data date
+          return dataDate - now + 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000;
+        })(),
       });
 
       const result = await staleClient.getModelPricing('openai', 'gpt-4o');
@@ -330,6 +336,186 @@ describe('PricingClient', () => {
       if (openaiData.previous) {
         expect(data.previous).toBeDefined();
       }
+    });
+  });
+});
+
+describe('Custom providers and offline mode', () => {
+  let openaiData: ProviderFile;
+
+  beforeEach(async () => {
+    openaiData = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'openai.json'), 'utf-8'));
+  });
+
+  describe('offline mode', () => {
+    it('should work with custom providers in offline mode', async () => {
+      const client = new PricingClient({
+        offline: true,
+        customProviders: {
+          'my-company': {
+            'internal-llm': { input: 0.5, output: 1.0, context: 32000 },
+          },
+        },
+      });
+
+      const result = await client.getModelPricing('my-company', 'internal-llm');
+      expect(result.pricing.input).toBe(0.5);
+      expect(result.pricing.output).toBe(1.0);
+      expect(result.pricing.context).toBe(32000);
+    });
+
+    it('should throw error for built-in provider in offline mode without custom data', async () => {
+      const client = new PricingClient({
+        offline: true,
+      });
+
+      await expect(client.getModelPricing('openai', 'gpt-4o')).rejects.toThrow(
+        /Provider 'openai' not found.*offline mode/
+      );
+    });
+
+    it('should allow overriding built-in providers in offline mode', async () => {
+      const client = new PricingClient({
+        offline: true,
+        customProviders: {
+          openai: {
+            'gpt-4o': { input: 999, output: 999 },
+          },
+        },
+      });
+
+      const result = await client.getModelPricing('openai', 'gpt-4o');
+      expect(result.pricing.input).toBe(999);
+      expect(result.pricing.output).toBe(999);
+    });
+  });
+
+  describe('custom providers (online mode)', () => {
+    it('should merge custom models with remote data', async () => {
+      const client = new PricingClient({
+        baseUrl: 'file://local',
+        fetch: createLocalFetch(DATA_DIR),
+        customProviders: {
+          openai: {
+            'my-custom-gpt': { input: 100, output: 200 },
+          },
+        },
+        timeOffsetMs: (() => {
+          const dataDate = new Date(openaiData.current.date + 'T00:00:00Z').getTime();
+          return dataDate - Date.now() + 12 * 60 * 60 * 1000;
+        })(),
+      });
+
+      // Custom model should work
+      const customResult = await client.getModelPricing('openai', 'my-custom-gpt');
+      expect(customResult.pricing.input).toBe(100);
+      expect(customResult.pricing.output).toBe(200);
+
+      // Remote model should still work
+      const remoteResult = await client.getModelPricing('openai', 'gpt-4o');
+      expect(remoteResult.pricing.input).toBe(2.5);
+    });
+
+    it('should allow custom data to override remote data', async () => {
+      const client = new PricingClient({
+        baseUrl: 'file://local',
+        fetch: createLocalFetch(DATA_DIR),
+        customProviders: {
+          openai: {
+            'gpt-4o': { input: 999, output: 888 }, // Override remote
+          },
+        },
+        timeOffsetMs: (() => {
+          const dataDate = new Date(openaiData.current.date + 'T00:00:00Z').getTime();
+          return dataDate - Date.now() + 12 * 60 * 60 * 1000;
+        })(),
+      });
+
+      const result = await client.getModelPricing('openai', 'gpt-4o');
+      expect(result.pricing.input).toBe(999);
+      expect(result.pricing.output).toBe(888);
+    });
+
+    it('should support entirely custom providers without remote data', async () => {
+      const client = new PricingClient({
+        customProviders: {
+          'my-company': {
+            'model-a': { input: 1, output: 2 },
+            'model-b': { input: 3, output: 4 },
+          },
+        },
+      });
+
+      const resultA = await client.getModelPricing('my-company', 'model-a');
+      expect(resultA.pricing.input).toBe(1);
+
+      const resultB = await client.getModelPricing('my-company', 'model-b');
+      expect(resultB.pricing.output).toBe(4);
+    });
+
+    it('should throw for unknown custom provider model', async () => {
+      const client = new PricingClient({
+        customProviders: {
+          'my-company': {
+            'model-a': { input: 1, output: 2 },
+          },
+        },
+      });
+
+      await expect(client.getModelPricing('my-company', 'non-existent')).rejects.toThrow(
+        /Model 'non-existent' not found/
+      );
+    });
+
+    it('should throw for unknown provider', async () => {
+      const client = new PricingClient({
+        offline: true,
+      });
+
+      await expect(client.getModelPricing('unknown-provider', 'model')).rejects.toThrow(
+        /Provider 'unknown-provider' not found/
+      );
+    });
+  });
+
+  describe('calculateCost with custom providers', () => {
+    it('should calculate cost using custom pricing', async () => {
+      const client = new PricingClient({
+        offline: true,
+        customProviders: {
+          'my-company': {
+            'internal-llm': { input: 10, output: 20 }, // $10/M input, $20/M output
+          },
+        },
+      });
+
+      const result = await client.calculateCost('my-company', 'internal-llm', {
+        inputTokens: 1_000_000,
+        outputTokens: 500_000,
+      });
+
+      expect(result.inputCost).toBe(10);
+      expect(result.outputCost).toBe(10);
+      expect(result.totalCost).toBe(20);
+    });
+  });
+
+  describe('listModels with custom providers', () => {
+    it('should list models for custom provider', async () => {
+      const client = new PricingClient({
+        offline: true,
+        customProviders: {
+          'my-company': {
+            'model-a': { input: 1, output: 2 },
+            'model-b': { input: 3, output: 4 },
+          },
+        },
+      });
+
+      const models = await client.listModels('my-company');
+      expect(models).toContain('model-a');
+      expect(models).toContain('model-b');
+      expect(models.length).toBe(2);
     });
   });
 });

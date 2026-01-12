@@ -127,14 +127,16 @@ console.log(`Output: $${gpt4o.output}/M tokens`);</code></pre>
 
   <h3>Option 2: NPM Package</h3>
   <pre><code>npm install token-costs</code></pre>
-  <pre><code>import { getModelPricing, calculateCost } from 'token-costs';
+  <pre><code>import { PricingClient } from 'token-costs';
+
+const client = new PricingClient();
 
 // Get pricing
-const result = await getModelPricing('openai', 'gpt-4o');
+const result = await client.getModelPricing('openai', 'gpt-4o');
 console.log(result.pricing.input);  // 2.5
 
 // Calculate cost
-const cost = await calculateCost('anthropic', 'claude-sonnet-4', {
+const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
   inputTokens: 1500,
   outputTokens: 800,
 });
@@ -171,15 +173,38 @@ const cost = await client.calculateCost('openai', 'gpt-4o', {
 });
 // Returns: { inputCost, outputCost, totalCost, usedCachedPricing, date, stale }</code></pre>
 
-  <h3>Convenience Functions</h3>
-  <p>For quick lookups without creating a client:</p>
-  <pre><code>import { getModelPricing, calculateCost } from 'token-costs';
+  <h3>Custom Providers &amp; Offline Mode</h3>
+  <p>Add custom models or use entirely custom pricing data:</p>
+  <pre><code>// Add custom models alongside remote data
+const client = new PricingClient({
+  customProviders: {
+    'my-company': {
+      'internal-llm': { input: 0.50, output: 1.00, context: 32000 }
+    },
+    'openai': {
+      'gpt-4-custom': { input: 25, output: 50 } // Override/add to openai
+    }
+  }
+});
 
-const pricing = await getModelPricing('openai', 'gpt-4o');
-const cost = await calculateCost('anthropic', 'claude-sonnet-4', { inputTokens: 1000, outputTokens: 500 });</code></pre>
+// Offline mode - no remote fetching, only use provided data
+const offlineClient = new PricingClient({
+  offline: true,
+  customProviders: {
+    'openai': {
+      'gpt-4o': { input: 2.5, output: 10 }
+    }
+  }
+});</code></pre>
 
   <h3>Client Options</h3>
   <pre><code>const client = new PricingClient({
+  // Disable remote fetching (only use customProviders)
+  offline: false,
+
+  // Custom provider data (merged with remote, custom takes precedence)
+  customProviders: { ... },
+
   // Custom base URL (default: GitHub raw content)
   baseUrl: 'https://your-mirror.com/api/v1',
 
@@ -204,7 +229,8 @@ const cost = await calculateCost('anthropic', 'claude-sonnet-4', { inputTokens: 
     <li><strong>Clock skew</strong> - Your server's date differs from the data's date</li>
   </ul>
 
-  <pre><code>const result = await getModelPricing('openai', 'gpt-4o');
+  <pre><code>const client = new PricingClient();
+const result = await client.getModelPricing('openai', 'gpt-4o');
 
 if (result.stale) {
   // Data date doesn't match today's date
@@ -216,7 +242,8 @@ if (result.stale) {
 
   <h3>Best Practices</h3>
   <p>For most applications, stale data is acceptable - LLM prices rarely change daily. However, if freshness matters:</p>
-  <pre><code>const result = await getModelPricing('openai', 'gpt-4o');
+  <pre><code>const client = new PricingClient();
+const result = await client.getModelPricing('openai', 'gpt-4o');
 
 if (result.stale) {
   // Option 1: Use it anyway (recommended for most cases)
@@ -230,14 +257,16 @@ if (result.stale) {
 }
 
 // In cost calculations, staleness is also returned:
-const cost = await calculateCost('openai', 'gpt-4o', { inputTokens: 1000, outputTokens: 500 });
+const cost = await client.calculateCost('openai', 'gpt-4o', { inputTokens: 1000, outputTokens: 500 });
 console.log(`Cost: $${cost.totalCost} (data from ${cost.date}, stale: ${cost.stale})`);</code></pre>
 
   <h3>Error Handling</h3>
-  <pre><code>import { ClockMismatchError } from 'token-costs';
+  <pre><code>import { PricingClient, ClockMismatchError } from 'token-costs';
+
+const client = new PricingClient();
 
 try {
-  const pricing = await getModelPricing('openai', 'gpt-4o');
+  const pricing = await client.getModelPricing('openai', 'gpt-4o');
 } catch (error) {
   if (error instanceof ClockMismatchError) {
     // Server clock is significantly off

@@ -58,23 +58,67 @@ export interface ProviderFile {
 }
 
 /**
- * Supported providers
+ * Built-in providers with remote data
  */
-export type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
+export type BuiltInProvider = 'openai' | 'anthropic' | 'google' | 'openrouter';
+
+/**
+ * Provider type - can be a built-in provider or a custom string
+ */
+export type Provider = BuiltInProvider | (string & {});
+
+/**
+ * Custom provider data format for offline/custom providers
+ * Maps modelId to pricing data
+ */
+export type CustomProviderModels = Record<string, ModelPricing>;
 
 /**
  * Options for the pricing client
  */
 export interface PricingClientOptions {
   /**
-   * Base URL for fetching pricing data
+   * When true, disables fetching from remote API.
+   * Only customProviders data will be available.
+   * @default false
+   */
+  offline?: boolean;
+
+  /**
+   * Custom provider data. Can be used to:
+   * - Add custom/internal models not in the remote API
+   * - Override pricing for existing models
+   * - Provide all data locally (with offline: true)
+   *
+   * Custom data is merged with remote data (custom takes precedence).
+   *
+   * @example
+   * ```ts
+   * new PricingClient({
+   *   customProviders: {
+   *     'my-company': {
+   *       'internal-llm': { input: 0.50, output: 1.00, context: 32000 }
+   *     },
+   *     'openai': {
+   *       'gpt-4-custom': { input: 25, output: 50 }  // Override/add to openai
+   *     }
+   *   }
+   * });
+   * ```
+   */
+  customProviders?: Record<string, CustomProviderModels>;
+
+  /**
+   * Base URL for fetching pricing data (ignored if offline: true)
    * @default 'https://raw.githubusercontent.com/mikkotikkanen/token-costs/main/docs/api/v1'
    */
   baseUrl?: string;
+
   /**
    * Custom fetch function (for testing or special environments)
    */
   fetch?: typeof globalThis.fetch;
+
   /**
    * Time offset in milliseconds to adjust the client's "today" calculation.
    * Use this if the server clock is known to be off.
@@ -84,9 +128,11 @@ export interface PricingClientOptions {
    * new PricingClient({ timeOffsetMs: 2 * 60 * 60 * 1000 })
    */
   timeOffsetMs?: number;
+
   /**
    * External cache for persisting fetch timestamps across restarts/instances.
    * If not provided, uses in-memory cache (lost on restart).
+   * Ignored if offline: true.
    *
    * This prevents hammering GitHub when:
    * - Running in serverless (cold starts)

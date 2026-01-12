@@ -5,12 +5,14 @@
 
 import type {
   Provider,
+  BuiltInProvider,
   ProviderFile,
   ProviderData,
   ModelPricing,
   PricingClientOptions,
   PriceLookupResult,
   CostResult,
+  CustomProviderModels,
 } from './types.js';
 
 // Default URL serves from GitHub Pages when configured, falls back to raw.githubusercontent.com
@@ -86,12 +88,23 @@ export class PricingClient {
   private timeOffsetMs: number;
   private cache: Map<Provider, CacheEntry> = new Map();
   private externalCache?: PricingClientOptions['externalCache'];
+  private offline: boolean;
+  private customProviders: Record<string, CustomProviderModels>;
 
   constructor(options: PricingClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     this.fetchFn = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.timeOffsetMs = options.timeOffsetMs ?? 0;
     this.externalCache = options.externalCache;
+    this.offline = options.offline ?? false;
+    this.customProviders = options.customProviders ?? {};
+  }
+
+  /**
+   * Check if a provider is a built-in provider with remote data
+   */
+  private isBuiltInProvider(provider: Provider): provider is BuiltInProvider {
+    return ['openai', 'anthropic', 'google', 'openrouter'].includes(provider);
   }
 
   /**
@@ -139,11 +152,71 @@ export class PricingClient {
   }
 
   /**
+   * Get custom provider data as a ProviderFile structure
+   */
+  private getCustomProviderFile(provider: Provider): ProviderFile | null {
+    const customModels = this.customProviders[provider];
+    if (!customModels) return null;
+
+    return {
+      current: {
+        date: this.getToday(),
+        models: customModels,
+      },
+    };
+  }
+
+  /**
+   * Merge custom provider data into a ProviderFile
+   */
+  private mergeCustomData(file: ProviderFile, provider: Provider): ProviderFile {
+    const customModels = this.customProviders[provider];
+    if (!customModels) return file;
+
+    return {
+      ...file,
+      current: {
+        ...file.current,
+        models: {
+          ...file.current.models,
+          ...customModels, // Custom takes precedence
+        },
+      },
+    };
+  }
+
+  /**
    * Fetch provider data, using cache if available and fresh
    */
   private async fetchProvider(provider: Provider): Promise<ProviderFile> {
     const today = this.getToday();
+    const isBuiltIn = this.isBuiltInProvider(provider);
+    const hasCustomData = provider in this.customProviders;
 
+    // Offline mode: only use custom data
+    if (this.offline) {
+      const customFile = this.getCustomProviderFile(provider);
+      if (customFile) {
+        return customFile;
+      }
+      throw new Error(
+        `Provider '${provider}' not found. In offline mode, only customProviders data is available.`
+      );
+    }
+
+    // Custom-only provider (not built-in): return custom data directly
+    if (!isBuiltIn) {
+      const customFile = this.getCustomProviderFile(provider);
+      if (customFile) {
+        return customFile;
+      }
+      throw new Error(
+        `Provider '${provider}' not found. Use a built-in provider (openai, anthropic, google, openrouter) ` +
+        `or add it to customProviders.`
+      );
+    }
+
+    // Built-in provider: fetch from remote (with caching)
     // Check in-memory cache first
     let cached = this.cache.get(provider);
 
@@ -159,7 +232,7 @@ export class PricingClient {
 
     // If we have cached data from today, use it (don't fetch again)
     if (cached && cached.fetchedDate === today) {
-      return cached.data;
+      return this.mergeCustomData(cached.data, provider);
     }
 
     // Try to fetch fresh data
@@ -169,7 +242,7 @@ export class PricingClient {
     if (!response.ok) {
       // If fetch fails but we have cached data, use it
       if (cached) {
-        return cached.data;
+        return this.mergeCustomData(cached.data, provider);
       }
       throw new Error(`Failed to fetch pricing data for ${provider}: ${response.status}`);
     }
@@ -192,7 +265,7 @@ export class PricingClient {
     this.cache.set(provider, entry);
     await this.saveToExternalCache(provider, entry);
 
-    return data;
+    return this.mergeCustomData(data, provider);
   }
 
   /**
@@ -350,42 +423,3 @@ export class PricingClient {
   }
 }
 
-/**
- * Default client instance for convenience
- */
-let defaultClient: PricingClient | null = null;
-
-/**
- * Get the default client instance
- */
-export function getDefaultClient(): PricingClient {
-  if (!defaultClient) {
-    defaultClient = new PricingClient();
-  }
-  return defaultClient;
-}
-
-/**
- * Convenience function to get model pricing using default client
- */
-export async function getModelPricing(
-  provider: Provider,
-  modelId: string
-): Promise<PriceLookupResult> {
-  return getDefaultClient().getModelPricing(provider, modelId);
-}
-
-/**
- * Convenience function to calculate cost using default client
- */
-export async function calculateCost(
-  provider: Provider,
-  modelId: string,
-  tokens: {
-    inputTokens: number;
-    outputTokens: number;
-    cachedInputTokens?: number;
-  }
-): Promise<CostResult> {
-  return getDefaultClient().calculateCost(provider, modelId, tokens);
-}
