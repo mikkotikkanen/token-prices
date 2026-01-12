@@ -1,4 +1,4 @@
-# Token Prices - Development Guide
+# Token Costs - Development Guide
 
 ## Documentation Audiences
 
@@ -50,7 +50,7 @@ Provider Sites → Crawlers → history/prices/*.json → generate-npm-files →
 ### Directory Structure
 
 ```
-token-prices/
+token-costs/
 ├── src/
 │   ├── crawlers/              # Price crawlers
 │   │   ├── base.ts            # BaseCrawler class + helpers

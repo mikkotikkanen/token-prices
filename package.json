@@ -44,11 +44,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mikkotikkanen/token-prices.git"
+    "url": "https://github.com/mikkotikkanen/token-costs.git"
   },
-  "homepage": "https://mikkotikkanen.github.io/token-prices",
+  "homepage": "https://mikkotikkanen.github.io/token-costs",
   "bugs": {
-    "url": "https://github.com/mikkotikkanen/token-prices/issues"
+    "url": "https://github.com/mikkotikkanen/token-costs/issues"
   },
   "keywords": [
     "llm",
