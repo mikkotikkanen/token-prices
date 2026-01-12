@@ -38,13 +38,12 @@ const POPULAR_MODEL_PREFIXES = [
   'openai/',
   'anthropic/',
   'google/',
-  'meta-llama/',
-  'mistralai/',
   'deepseek/',
-  'cohere/',
   'perplexity/',
   'qwen/',
-  'microsoft/',
+  'moonshotai/',
+  'z-ai/',
+  'minimax/',
 ];
 
 /**
@@ -52,6 +51,48 @@ const POPULAR_MODEL_PREFIXES = [
  * Set to limit file size and API load
  */
 const MAX_MODELS = 20;
+
+/**
+ * Parse a single OpenRouter model into our pricing format
+ */
+function parseOpenRouterModel(model: OpenRouterModel, includeMetadata = false): ModelPricing | null {
+  // Skip models with no pricing
+  if (!model.pricing?.prompt || !model.pricing?.completion) {
+    return null;
+  }
+
+  // Parse prices - OpenRouter returns prices per token as strings
+  const inputPricePerToken = parseFloat(model.pricing.prompt);
+  const outputPricePerToken = parseFloat(model.pricing.completion);
+
+  // Skip free models or invalid prices
+  if (
+    isNaN(inputPricePerToken) ||
+    isNaN(outputPricePerToken) ||
+    (inputPricePerToken === 0 && outputPricePerToken === 0)
+  ) {
+    return null;
+  }
+
+  // Convert per-token price to per-million tokens
+  const inputPricePerMillion = inputPricePerToken * 1_000_000;
+  const outputPricePerMillion = outputPricePerToken * 1_000_000;
+
+  const pricing: ModelPricing = {
+    modelId: model.id,
+    modelName: model.name,
+    inputPricePerMillion: Math.round(inputPricePerMillion * 1000000) / 1000000, // Round to 6 decimal places
+    outputPricePerMillion: Math.round(outputPricePerMillion * 1000000) / 1000000,
+    contextWindow: model.context_length,
+    maxOutputTokens: model.top_provider?.max_completion_tokens,
+  };
+
+  if (includeMetadata && model.description) {
+    pricing.metadata = { description: model.description };
+  }
+
+  return pricing;
+}
 
 /**
  * OpenRouter price crawler
@@ -73,7 +114,7 @@ export class OpenRouterCrawler extends BaseCrawler {
 
   private parseApiResponse(response: OpenRouterModelsResponse): ModelPricing[] {
     const allModels = response.data
-      .map(model => this.parseModel(model))
+      .map(model => parseOpenRouterModel(model, true))
       .filter((m): m is ModelPricing => m !== null);
 
     // Sort models by popularity (popular prefixes first, then alphabetically)
@@ -87,42 +128,6 @@ export class OpenRouterCrawler extends BaseCrawler {
     );
 
     return limitedModels;
-  }
-
-  private parseModel(model: OpenRouterModel): ModelPricing | null {
-    // Skip models with no pricing
-    if (!model.pricing?.prompt || !model.pricing?.completion) {
-      return null;
-    }
-
-    // Parse prices - OpenRouter returns prices per token as strings
-    const inputPricePerToken = parseFloat(model.pricing.prompt);
-    const outputPricePerToken = parseFloat(model.pricing.completion);
-
-    // Skip free models or invalid prices
-    if (
-      isNaN(inputPricePerToken) ||
-      isNaN(outputPricePerToken) ||
-      (inputPricePerToken === 0 && outputPricePerToken === 0)
-    ) {
-      return null;
-    }
-
-    // Convert per-token price to per-million tokens
-    const inputPricePerMillion = inputPricePerToken * 1_000_000;
-    const outputPricePerMillion = outputPricePerToken * 1_000_000;
-
-    return {
-      modelId: model.id,
-      modelName: model.name,
-      inputPricePerMillion: Math.round(inputPricePerMillion * 1000000) / 1000000, // Round to 6 decimal places
-      outputPricePerMillion: Math.round(outputPricePerMillion * 1000000) / 1000000,
-      contextWindow: model.context_length,
-      maxOutputTokens: model.top_provider?.max_completion_tokens,
-      metadata: {
-        description: model.description,
-      },
-    };
   }
 
   private sortByPopularity(models: ModelPricing[]): ModelPricing[] {
@@ -174,7 +179,7 @@ export class OpenRouterBatchCrawler extends BaseCrawler {
     );
 
     const allModels = response.data
-      .map(model => this.parseModel(model))
+      .map(model => parseOpenRouterModel(model))
       .filter((m): m is ModelPricing => m !== null);
 
     // Calculate batch boundaries
@@ -190,35 +195,6 @@ export class OpenRouterBatchCrawler extends BaseCrawler {
     );
 
     return batchModels;
-  }
-
-  private parseModel(model: OpenRouterModel): ModelPricing | null {
-    if (!model.pricing?.prompt || !model.pricing?.completion) {
-      return null;
-    }
-
-    const inputPricePerToken = parseFloat(model.pricing.prompt);
-    const outputPricePerToken = parseFloat(model.pricing.completion);
-
-    if (
-      isNaN(inputPricePerToken) ||
-      isNaN(outputPricePerToken) ||
-      (inputPricePerToken === 0 && outputPricePerToken === 0)
-    ) {
-      return null;
-    }
-
-    const inputPricePerMillion = inputPricePerToken * 1_000_000;
-    const outputPricePerMillion = outputPricePerToken * 1_000_000;
-
-    return {
-      modelId: model.id,
-      modelName: model.name,
-      inputPricePerMillion: Math.round(inputPricePerMillion * 1000000) / 1000000,
-      outputPricePerMillion: Math.round(outputPricePerMillion * 1000000) / 1000000,
-      contextWindow: model.context_length,
-      maxOutputTokens: model.top_provider?.max_completion_tokens,
-    };
   }
 }
 

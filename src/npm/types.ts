@@ -68,7 +68,7 @@ export type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
 export interface PricingClientOptions {
   /**
    * Base URL for fetching pricing data
-   * @default 'https://raw.githubusercontent.com/anthropics/token-prices/main/data/npm'
+   * @default 'https://raw.githubusercontent.com/mikkotikkanen/token-prices/main/docs/api/v1'
    */
   baseUrl?: string;
   /**

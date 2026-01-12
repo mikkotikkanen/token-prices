@@ -11,7 +11,7 @@ import {
 } from './storage.js';
 import { ModelPricing, ProviderPriceHistory } from '../types.js';
 
-const TEST_DATA_DIR = path.join(process.cwd(), 'data', 'test-prices');
+const TEST_DATA_DIR = path.join(process.cwd(), 'history', 'test-prices');
 
 describe('Storage Utils', () => {
   beforeEach(async () => {

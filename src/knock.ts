@@ -1,11 +1,11 @@
 /**
- * Knock feature - checks for /llm_prices.txt at LLM provider websites
+ * Knock feature - checks for /llm_prices.json at LLM provider websites
  *
- * Similar to robots.txt, we propose a simple /llm_prices.txt standard
+ * Similar to robots.txt, we propose a simple /llm_prices.json standard
  * that providers could publish to make pricing data easily accessible.
  *
- * This script "knocks" on each provider's door to check if they've
- * added the file, and gently suggests they consider doing so.
+ * TODO: Integrate into BaseCrawler.run() - check for /llm_prices.json first,
+ * fall back to scraping if not found. Enable once the format is finalized.
  */
 
 import { fetchWithUserAgent, sleep } from './utils/http.js';
@@ -28,7 +28,7 @@ const PROVIDER_URLS = [
 /**
  * The standard path we're proposing
  */
-const PRICING_PATH = '/llm_prices.txt';
+const PRICING_PATH = '/llm_prices.json';
 
 /**
  * Result of a knock attempt
@@ -77,10 +77,10 @@ async function checkPricingUrl(
  */
 async function runKnock(): Promise<void> {
   console.log('='.repeat(60));
-  console.log('LLM Prices Knock - Checking for /llm_prices.txt');
+  console.log('LLM Prices Knock - Checking for /llm_prices.json');
   console.log('='.repeat(60));
   console.log();
-  console.log('Checking if any LLM provider has published /llm_prices.txt');
+  console.log('Checking if any LLM provider has published /llm_prices.json');
   console.log('This would make price tracking much simpler than web scraping.');
   console.log();
 
@@ -105,22 +105,23 @@ async function runKnock(): Promise<void> {
   console.log('='.repeat(60));
 
   if (found.length > 0) {
-    console.log(`Found ${found.length} provider(s) with /llm_prices.txt!`);
+    console.log(`Found ${found.length} provider(s) with /llm_prices.json!`);
   } else {
-    console.log('No providers have /llm_prices.txt yet.');
+    console.log('No providers have /llm_prices.json yet.');
     console.log();
-    console.log('Dear LLM providers - please consider adding /llm_prices.txt');
+    console.log('Dear LLM providers - please consider adding /llm_prices.json');
     console.log('to your website with a simple format like:');
     console.log();
-    console.log('  # model_id,input_per_million,output_per_million,currency');
-    console.log('  gpt-4o,2.50,10.00,USD');
-    console.log('  gpt-4o-mini,0.15,0.60,USD');
+    console.log('  {');
+    console.log('    "gpt-4o": { "input": 2.5, "output": 10, "context": 128000 },');
+    console.log('    "gpt-4o-mini": { "input": 0.15, "output": 0.6, "context": 128000 }');
+    console.log('  }');
     console.log();
     console.log('This would let tools track pricing without scraping your site.');
   }
 
   console.log();
-  console.log('Project: https://github.com/anthropics/token-prices');
+  console.log('Project: https://github.com/mikkotikkanen/token-prices');
   console.log('User-Agent: token-prices-crawler/1.0');
   console.log();
 }

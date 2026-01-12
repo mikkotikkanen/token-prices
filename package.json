@@ -21,7 +21,6 @@
     "dev:anthropic": "npm run build && npm run crawl:anthropic",
     "dev:google": "npm run build && npm run crawl:google",
     "dev:openrouter": "npm run build && npm run crawl:openrouter",
-    "dev:knock": "npm run build && npm run knock",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -30,11 +29,10 @@
     "crawl:google": "node --experimental-vm-modules dist/crawlers/google/index.js",
     "crawl:openrouter": "node --experimental-vm-modules dist/crawlers/openrouter/index.js",
     "crawl:all": "npm run crawl:openai && npm run crawl:anthropic && npm run crawl:google && npm run crawl:openrouter",
-    "knock": "node --experimental-vm-modules dist/knock.js",
-    "show:openai": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/openai.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
-    "show:anthropic": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/anthropic.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
-    "show:google": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/google.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
-    "show:openrouter": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./data/prices/openrouter.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:openai": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./history/prices/openai.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:anthropic": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./history/prices/anthropic.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:google": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./history/prices/google.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
+    "show:openrouter": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('./history/prices/openrouter.json','utf8'));console.log(JSON.stringify(d,null,2));\"",
     "test:local": "npm run build && node --experimental-vm-modules dist/test-local.js",
     "test:local:openai": "npm run build && node --experimental-vm-modules dist/test-local.js openai",
     "test:local:anthropic": "npm run build && node --experimental-vm-modules dist/test-local.js anthropic",
@@ -48,15 +46,24 @@
     "type": "git",
     "url": "https://github.com/mikkotikkanen/token-prices.git"
   },
+  "homepage": "https://mikkotikkanen.github.io/token-prices",
+  "bugs": {
+    "url": "https://github.com/mikkotikkanen/token-prices/issues"
+  },
   "keywords": [
     "llm",
     "pricing",
     "openai",
     "anthropic",
     "google",
-    "openrouter"
+    "openrouter",
+    "gpt",
+    "claude",
+    "gemini",
+    "tokens",
+    "cost"
   ],
-  "author": "",
+  "author": "Mikko Tikkanen",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.0",

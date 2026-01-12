@@ -8,14 +8,14 @@ import {
   ProviderPriceSnapshot
 } from '../types.js';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const PRICES_DIR = path.join(DATA_DIR, 'prices');
+const HISTORY_DIR = path.join(process.cwd(), 'history');
+const PRICES_DIR = path.join(HISTORY_DIR, 'prices');
 
 /**
  * Ensure data directories exist
  */
 export async function ensureDataDirs(): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.mkdir(HISTORY_DIR, { recursive: true });
   await fs.mkdir(PRICES_DIR, { recursive: true });
 }
 

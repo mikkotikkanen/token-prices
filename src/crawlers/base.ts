@@ -23,6 +23,8 @@ export abstract class BaseCrawler {
     console.log(`[${this.provider}] Pricing URL: ${this.pricingUrl}`);
 
     try {
+      // TODO: Check for /llm_prices.json first, fall back to crawling if not found
+      // Once providers start publishing this file, we can skip scraping entirely
       const prices = await this.crawlPrices();
       console.log(`[${this.provider}] Found ${prices.length} models`);
 

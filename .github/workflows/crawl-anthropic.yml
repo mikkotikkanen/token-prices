@@ -2,8 +2,8 @@ name: Crawl Anthropic Prices
 
 on:
   schedule:
-    # Run at midnight UTC every day
-    - cron: '5 0 * * *'
+    # Run at 00:01 UTC every day
+    - cron: '1 0 * * *'
   workflow_dispatch:
     # Allow manual triggering
 
@@ -32,11 +32,14 @@ jobs:
       - name: Run Anthropic crawler
         run: npm run crawl:anthropic
 
+      - name: Generate npm data
+        run: npm run generate:npm -- anthropic
+
       - name: Commit changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/
+          git add history/ docs/
           git diff --staged --quiet || git commit -m "Update Anthropic prices $(date -u +%Y-%m-%d)"
 
       - name: Push changes

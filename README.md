@@ -1,68 +1,86 @@
 # Token Prices
 
-Up-to-date LLM token pricing data for calculating the true cost of API requests.
+Daily-updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.
 
-## Why?
+## What Is This?
 
-When building applications with LLMs, you need to know what each request actually costs. This project provides daily-updated pricing data for major LLM providers.
-
-## Pricing Data
-
-Prices are stored in `data/prices/{provider}.json`:
-
-- [OpenAI](data/prices/openai.json) - GPT-4o, GPT-4, o1, o3-mini, etc.
-- [Anthropic](data/prices/anthropic.json) - Claude Opus, Sonnet, Haiku
-- [Google](data/prices/google.json) - Gemini models
-- [OpenRouter](data/prices/openrouter.json) - Top 20 popular models
-
-## Data Format
+An npm package and JSON API that gives you up-to-date token pricing for major LLM providers. Stop hardcoding prices or manually checking pricing pages.
 
 ```typescript
-interface ModelPricing {
-  modelId: string;                    // e.g., "gpt-4o"
-  modelName: string;                  // e.g., "GPT-4o"
-  inputPricePerMillion: number;       // USD per 1M input tokens
-  outputPricePerMillion: number;      // USD per 1M output tokens
-  cachedInputPricePerMillion?: number; // USD per 1M cached tokens
-  contextWindow?: number;             // Max context size
-}
+import { getModelPricing, calculateCost } from 'token-prices';
+
+// Get pricing info for a model
+const pricing = await getModelPricing('openai', 'gpt-4o');
+// { input: 2.5, output: 10, context: 128000 }
 ```
 
-## How It Works
+```typescript
+// Or calculate cost directly (fetches pricing automatically)
+const cost = await calculateCost('anthropic', 'claude-sonnet-4', {
+  inputTokens: 1500,
+  outputTokens: 800,
+});
+// { totalCost: 0.0165, ... }
+```
 
-Prices are fetched daily from provider pricing pages. Only changes are recorded, keeping full history while staying compact.
+Or fetch directly without dependencies:
+```javascript
+const data = await fetch('https://mikkotikkanen.github.io/token-prices/api/v1/openai.json')
+  .then(r => r.json());
+```
 
-## Roadmap
+## Features
 
-- [ ] npm module for programmatic access (API TBD)
+- **Daily updates** - Crawled automatically at 00:01 UTC
+- **4 providers** - OpenAI, Anthropic, Google, OpenRouter
+- **Zero dependencies** - npm package has no runtime dependencies
+- **TypeScript** - Full type definitions included
+- **Caching** - Fetches once per day, caches automatically
+- **Stale detection** - Know when data might be outdated
+
+## Installation
+
+```bash
+npm install token-prices
+```
+
+## Documentation
+
+Full usage guide, API reference, and data formats: **[mikkotikkanen.github.io/token-prices](https://mikkotikkanen.github.io/token-prices)**
+
+## What's Included
+
+```
+token-prices/
+├── PricingClient        # Main client class with caching
+├── getModelPricing()    # Quick lookup function
+├── calculateCost()      # Cost calculation helper
+└── TypeScript types     # Full type definitions
+```
+
+**API Endpoints** (JSON):
+- `api/v1/openai.json`
+- `api/v1/anthropic.json`
+- `api/v1/google.json`
+- `api/v1/openrouter.json`
 
 ## Contributing
 
-Contributions welcome! You can help by:
-
-- Adding new providers
-- Improving price parsing accuracy
-- Reporting incorrect prices
-- Suggesting features
+Found incorrect pricing? Want to add a provider? Contributions welcome!
 
 ```bash
-# Setup
+git clone https://github.com/mikkotikkanen/token-prices
+cd token-prices
 npm install
 npm run build
 npm test
-
-# Test crawlers locally
-npm run test:local
 ```
+
+See [AGENTS.md](AGENTS.md) for development details.
 
 ## For LLM Providers
 
-We'd prefer not to scrape. Consider adding `/llm_prices.txt`:
-
-```
-# model_id,input_per_million,output_per_million,currency
-gpt-4o,2.50,10.00,USD
-```
+We'd prefer not to scrape. Consider publishing `/llm_prices.json` on your website - a simple standard format that tools can fetch directly. See the [full proposal](https://mikkotikkanen.github.io/token-prices/#proposal) on the documentation site.
 
 ## License
 

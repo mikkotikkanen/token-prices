@@ -9,13 +9,13 @@ import { ProviderPriceHistory } from './types.js';
 import { getCurrentSnapshot } from './utils/storage.js';
 import type { ProviderFile, ProviderData, ModelPricing } from './npm/types.js';
 
-const DATA_DIR = path.join(process.cwd(), 'data', 'prices');
+const HISTORY_DIR = path.join(process.cwd(), 'history', 'prices');
 const OUTPUT_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
 
 type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
 
 async function loadHistory(provider: Provider): Promise<ProviderPriceHistory | null> {
-  const filePath = path.join(DATA_DIR, `${provider}.json`);
+  const filePath = path.join(HISTORY_DIR, `${provider}.json`);
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(content);
@@ -62,61 +62,70 @@ function historyToProviderData(history: ProviderPriceHistory): ProviderData {
   return { date, models };
 }
 
-async function generateFiles(): Promise<void> {
+async function generateFile(provider: Provider): Promise<{ provider: string; models: number; size: number } | null> {
+  const history = await loadHistory(provider);
+  if (!history) {
+    console.log(`  ${provider}: no source data`);
+    return null;
+  }
+
+  const currentData = historyToProviderData(history);
+
+  // Load existing npm file to preserve previous data
+  const existingFile = await loadPreviousNpmFile(provider);
+
+  let providerFile: ProviderFile;
+
+  if (existingFile && existingFile.current.date !== currentData.date) {
+    // Date changed - move current to previous
+    providerFile = {
+      current: currentData,
+      previous: existingFile.current,
+    };
+  } else if (existingFile) {
+    // Same date - keep previous as is
+    providerFile = {
+      current: currentData,
+      previous: existingFile.previous,
+    };
+  } else {
+    // First time - no previous
+    providerFile = {
+      current: currentData,
+    };
+  }
+
+  // Write with 2-space indentation for readability
+  const filePath = path.join(OUTPUT_DIR, `${provider}.json`);
+  const content = JSON.stringify(providerFile, null, 2);
+  await fs.writeFile(filePath, content);
+
+  const modelCount = Object.keys(currentData.models).length;
+  console.log(`  ${provider}.json: ${modelCount} models, ${content.length} bytes`);
+
+  return {
+    provider,
+    models: modelCount,
+    size: content.length,
+  };
+}
+
+async function generateFiles(targetProvider?: Provider): Promise<void> {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
 
-  const providers: Provider[] = ['openai', 'anthropic', 'google', 'openrouter'];
+  const providers: Provider[] = targetProvider
+    ? [targetProvider]
+    : ['openai', 'anthropic', 'google', 'openrouter'];
 
-  console.log('Generating npm module data files...\n');
+  console.log(`Generating npm module data files${targetProvider ? ` for ${targetProvider}` : ''}...\n`);
 
   const results: Array<{ provider: string; models: number; size: number }> = [];
 
   for (const provider of providers) {
-    const history = await loadHistory(provider);
-    if (!history) {
-      console.log(`  ${provider}: no source data`);
-      continue;
+    const result = await generateFile(provider);
+    if (result) {
+      results.push(result);
     }
-
-    const currentData = historyToProviderData(history);
-
-    // Load existing npm file to preserve previous data
-    const existingFile = await loadPreviousNpmFile(provider);
-
-    let providerFile: ProviderFile;
-
-    if (existingFile && existingFile.current.date !== currentData.date) {
-      // Date changed - move current to previous
-      providerFile = {
-        current: currentData,
-        previous: existingFile.current,
-      };
-    } else if (existingFile) {
-      // Same date - keep previous as is
-      providerFile = {
-        current: currentData,
-        previous: existingFile.previous,
-      };
-    } else {
-      // First time - no previous
-      providerFile = {
-        current: currentData,
-      };
-    }
-
-    // Write with 2-space indentation for readability
-    const filePath = path.join(OUTPUT_DIR, `${provider}.json`);
-    const content = JSON.stringify(providerFile, null, 2);
-    await fs.writeFile(filePath, content);
-
-    const modelCount = Object.keys(currentData.models).length;
-    results.push({
-      provider,
-      models: modelCount,
-      size: content.length,
-    });
-
-    console.log(`  ${provider}.json: ${modelCount} models, ${content.length} bytes`);
   }
 
   // Summary
@@ -136,11 +145,29 @@ async function generateFiles(): Promise<void> {
   console.log('---------------|--------|--------');
   console.log(`${'TOTAL'.padEnd(14)} | ${totalModels.toString().padStart(6)} | ${totalSize.toString().padStart(5)} B`);
 
-  // Show sample
-  console.log('\n=== Sample: openai.json ===\n');
-  const samplePath = path.join(OUTPUT_DIR, 'openai.json');
-  const sample = await fs.readFile(samplePath, 'utf-8');
-  console.log(sample);
+  // Show sample (only when generating all providers)
+  if (!targetProvider) {
+    console.log('\n=== Sample: openai.json ===\n');
+    const samplePath = path.join(OUTPUT_DIR, 'openai.json');
+    const sample = await fs.readFile(samplePath, 'utf-8');
+    console.log(sample);
+  }
 }
 
-generateFiles().catch(console.error);
+// Export for testing
+export { historyToProviderData };
+
+// Run if this is the main module
+const scriptPath = process.argv[1];
+if (scriptPath && scriptPath.includes('generate-npm-files')) {
+  const validProviders: Provider[] = ['openai', 'anthropic', 'google', 'openrouter'];
+  const arg = process.argv[2];
+
+  if (arg && !validProviders.includes(arg as Provider)) {
+    console.error(`Invalid provider: ${arg}`);
+    console.error(`Valid providers: ${validProviders.join(', ')}`);
+    process.exit(1);
+  }
+
+  generateFiles(arg as Provider | undefined).catch(console.error);
+}
