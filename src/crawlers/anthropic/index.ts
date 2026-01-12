@@ -1,126 +1,98 @@
-import * as cheerio from 'cheerio';
 import { BaseCrawler, parsePrice } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
 import { fetchHtml, withRetry } from '../../utils/http.js';
 
 /**
  * Anthropic price crawler
- * Scrapes prices from Anthropic's pricing page
+ * Scrapes prices from Anthropic's platform pricing page
  */
 export class AnthropicCrawler extends BaseCrawler {
   readonly provider: Provider = 'anthropic';
-  readonly pricingUrl = 'https://www.anthropic.com/pricing';
+  readonly pricingUrl = 'https://platform.claude.com/docs/en/about-claude/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    try {
-      const html = await withRetry(() => fetchHtml(this.pricingUrl));
-      return this.parsePricingPage(html);
-    } catch (error) {
-      // If fetch fails (e.g., 403 forbidden), fall back to known models
-      console.warn(`[anthropic] Fetch failed: ${error instanceof Error ? error.message : error}`);
-      console.warn('[anthropic] Using fallback known models');
-      return this.getKnownModels();
-    }
+    const html = await withRetry(() => fetchHtml(this.pricingUrl));
+    return this.parsePricingPage(html);
   }
 
   private parsePricingPage(html: string): ModelPricing[] {
-    const $ = cheerio.load(html);
+    // Table format:
+    // Model | Base Input Tokens | 5m Cache Writes | 1h Cache Writes | Cache Hits & Refreshes | Output Tokens
+    // We want: Model (col 0), Base Input (col 1), Cache Hits (col 4), Output (col 5)
+    // Note: Page has multiple tables (standard, batch) - we only want the first/standard pricing
+
     const models: ModelPricing[] = [];
+    const seenModelIds = new Set<string>();
 
-    // Try to find pricing data in the page
-    // Anthropic typically displays pricing in tables or cards
+    // Match table rows with 6 columns
+    // Format: <tr><td>Claude Opus 4.5</td><td>$5 / MTok</td><td>...</td><td>...</td><td>$0.50 / MTok</td><td>$25 / MTok</td></tr>
+    const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<\/tr>/gi;
 
-    // Strategy 1: Look for table-based pricing
-    $('table').each((_, table) => {
-      const $table = $(table);
-      const headers = $table.find('th').toArray().map(th => $(th).text().trim().toLowerCase());
+    let match;
+    while ((match = rowRegex.exec(html)) !== null) {
+      const modelName = match[1].replace(/<[^>]+>/g, '').trim();
+      const inputStr = match[2].replace(/<[^>]+>/g, '').trim();
+      const cacheHitsStr = match[5].replace(/<[^>]+>/g, '').trim();
+      const outputStr = match[6].replace(/<[^>]+>/g, '').trim();
 
-      // Find column indices
-      const modelCol = headers.findIndex(h => h.includes('model'));
-      const inputCol = headers.findIndex(h => h.includes('input'));
-      const outputCol = headers.findIndex(h => h.includes('output'));
+      // Skip header rows
+      if (modelName.toLowerCase().includes('model') || !modelName.toLowerCase().includes('claude')) {
+        continue;
+      }
 
-      if (inputCol !== -1 && outputCol !== -1) {
-        $table.find('tbody tr').each((_, row) => {
-          const cells = $(row).find('td').toArray();
-          if (cells.length > Math.max(modelCol, inputCol, outputCol)) {
-            const modelName = $(cells[modelCol >= 0 ? modelCol : 0]).text().trim();
-            const inputPriceStr = $(cells[inputCol]).text().trim();
-            const outputPriceStr = $(cells[outputCol]).text().trim();
+      // Skip non-text models
+      if (!this.isTextModel(modelName)) {
+        continue;
+      }
 
-            const model = this.parseModelPricing(modelName, inputPriceStr, outputPriceStr);
-            if (model) {
-              models.push(model);
-            }
-          }
+      const modelId = this.normalizeModelId(modelName);
+
+      // Skip duplicates (batch pricing table has same models with different prices)
+      if (seenModelIds.has(modelId)) {
+        continue;
+      }
+
+      const inputPrice = this.extractPrice(inputStr);
+      const outputPrice = this.extractPrice(outputStr);
+      const cachedPrice = this.extractPrice(cacheHitsStr);
+
+      if (!isNaN(inputPrice) && !isNaN(outputPrice)) {
+        seenModelIds.add(modelId);
+        models.push({
+          modelId: modelId,
+          modelName: modelName,
+          inputPricePerMillion: inputPrice,
+          outputPricePerMillion: outputPrice,
+          cachedInputPricePerMillion: !isNaN(cachedPrice) ? cachedPrice : undefined,
         });
       }
-    });
-
-    // Strategy 2: Look for pricing cards with model names
-    $('[class*="pricing"], [class*="model"], [class*="card"]').each((_, el) => {
-      const $el = $(el);
-      const text = $el.text();
-
-      // Look for Claude model names
-      const claudeMatch = text.match(/Claude\s*(?:[\d.]+\s*)?(?:Opus|Sonnet|Haiku|Instant)/i);
-      if (claudeMatch) {
-        const prices = text.match(/\$[\d.]+/g);
-        if (prices && prices.length >= 2) {
-          const inputPrice = parsePrice(prices[0]);
-          const outputPrice = parsePrice(prices[1]);
-
-          // Check if per million
-          const perMillion = /\/\s*M|per\s*M|MTok/i.test(text);
-
-          models.push({
-            modelId: this.normalizeModelId(claudeMatch[0]),
-            modelName: claudeMatch[0],
-            inputPricePerMillion: perMillion ? inputPrice : inputPrice * 1000,
-            outputPricePerMillion: perMillion ? outputPrice : outputPrice * 1000,
-          });
-        }
-      }
-    });
-
-    // If we couldn't parse from HTML, use known models as fallback
-    if (models.length === 0) {
-      console.warn('[anthropic] Could not parse pricing from HTML, using known models');
-      return this.getKnownModels();
     }
 
-    return this.deduplicateModels(models);
+    if (models.length === 0) {
+      throw new Error('[anthropic] Could not parse any pricing from HTML');
+    }
+
+    if (models.length < 3) {
+      throw new Error(`[anthropic] Only found ${models.length} models, expected at least 3`);
+    }
+
+    return models;
   }
 
-  private parseModelPricing(
-    modelName: string,
-    inputPriceStr: string,
-    outputPriceStr: string
-  ): ModelPricing | null {
-    // Skip non-model rows
-    if (!modelName || modelName.toLowerCase().includes('model')) {
-      return null;
+  private extractPrice(str: string): number {
+    // Extract price from format like "$5 / MTok" or "$0.50 / MTok"
+    const priceMatch = str.match(/\$([0-9.]+)/);
+    if (priceMatch) {
+      return parseFloat(priceMatch[1]);
     }
+    return NaN;
+  }
 
-    const inputPrice = parsePrice(inputPriceStr);
-    const outputPrice = parsePrice(outputPriceStr);
-
-    if (isNaN(inputPrice) || isNaN(outputPrice)) {
-      return null;
-    }
-
-    // Determine price scale (per 1K or 1M)
-    const isPerMillion =
-      inputPriceStr.includes('M') ||
-      inputPriceStr.includes('million') ||
-      inputPrice < 1; // If price is < $1, it's likely per 1M
-
-    return {
-      modelId: this.normalizeModelId(modelName),
-      modelName: modelName,
-      inputPricePerMillion: isPerMillion ? inputPrice : inputPrice * 1000,
-      outputPricePerMillion: isPerMillion ? outputPrice : outputPrice * 1000,
-    };
+  private isTextModel(name: string): boolean {
+    const n = name.toLowerCase();
+    // Include Claude text models only
+    const isExcluded = ['tts', 'embedding', 'image'].some(x => n.includes(x));
+    return n.includes('claude') && !isExcluded;
   }
 
   private normalizeModelId(name: string): string {
@@ -128,77 +100,6 @@ export class AnthropicCrawler extends BaseCrawler {
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-\.]/g, '');
-  }
-
-  private deduplicateModels(models: ModelPricing[]): ModelPricing[] {
-    const seen = new Map<string, ModelPricing>();
-    for (const model of models) {
-      if (!seen.has(model.modelId)) {
-        seen.set(model.modelId, model);
-      }
-    }
-    return Array.from(seen.values());
-  }
-
-  /**
-   * Known Anthropic models as fallback
-   */
-  private getKnownModels(): ModelPricing[] {
-    return [
-      {
-        modelId: 'claude-opus-4',
-        modelName: 'Claude Opus 4',
-        inputPricePerMillion: 15.00,
-        outputPricePerMillion: 75.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-sonnet-4',
-        modelName: 'Claude Sonnet 4',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-3.5-sonnet',
-        modelName: 'Claude 3.5 Sonnet',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.30,
-      },
-      {
-        modelId: 'claude-3.5-haiku',
-        modelName: 'Claude 3.5 Haiku',
-        inputPricePerMillion: 0.80,
-        outputPricePerMillion: 4.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.08,
-      },
-      {
-        modelId: 'claude-3-opus',
-        modelName: 'Claude 3 Opus',
-        inputPricePerMillion: 15.00,
-        outputPricePerMillion: 75.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 1.50,
-      },
-      {
-        modelId: 'claude-3-sonnet',
-        modelName: 'Claude 3 Sonnet',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-3-haiku',
-        modelName: 'Claude 3 Haiku',
-        inputPricePerMillion: 0.25,
-        outputPricePerMillion: 1.25,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.03,
-      },
-    ];
   }
 }
 

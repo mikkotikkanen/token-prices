@@ -16,31 +16,29 @@ describe('GoogleCrawler', () => {
   });
 
   describe('crawlPrices', () => {
-    it('should parse prices from HTML table with headers', async () => {
+    it('should parse prices from h2 sections with pricing tables', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
+      // Simulate the actual Google AI pricing page format
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
+            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
             <table>
-              <thead>
-                <tr>
-                  <th>Model</th>
-                  <th>Input price</th>
-                  <th>Output price</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Gemini Pro</td>
-                  <td>$1.25</td>
-                  <td>$5.00</td>
-                </tr>
-                <tr>
-                  <td>Gemini Flash</td>
-                  <td>$0.075</td>
-                  <td>$0.30</td>
-                </tr>
-              </tbody>
+              <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.125</td></tr>
+            </table>
+            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.03</td></tr>
+            </table>
+            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.025</td></tr>
             </table>
           </body>
         </html>
@@ -48,33 +46,90 @@ describe('GoogleCrawler', () => {
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices.length).toBeGreaterThanOrEqual(2);
+      expect(prices.length).toBeGreaterThanOrEqual(3);
 
-      const pro = prices.find(p => p.modelId.includes('pro'));
+      const pro = prices.find(p => p.modelId === 'gemini-2.5-pro');
       expect(pro).toBeDefined();
       expect(pro?.inputPricePerMillion).toBe(1.25);
-      expect(pro?.outputPricePerMillion).toBe(5);
+      expect(pro?.outputPricePerMillion).toBe(10);
+      expect(pro?.cachedInputPricePerMillion).toBe(0.125);
     });
 
-    it('should parse Gemini models from definition lists', async () => {
+    it('should include cached input pricing', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <dl class="pricing">
-              <dt>Gemini 2.0 Flash</dt>
-              <dd>Input: $0.10/1M tokens, Output: $0.40/1M tokens</dd>
-            </dl>
+            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.125</td></tr>
+            </table>
+            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.03</td></tr>
+            </table>
+            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
+              <tr><td>Context caching price</td><td>Free</td><td>$0.025</td></tr>
+            </table>
           </body>
         </html>
       `);
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices.length).toBeGreaterThan(0);
+      const pro = prices.find(p => p.modelId === 'gemini-2.5-pro');
+      expect(pro?.cachedInputPricePerMillion).toBe(0.125);
     });
 
-    it('should fall back to known models when HTML parsing fails', async () => {
+    it('should filter out non-text models', async () => {
+      const { fetchHtml } = await import('../../utils/http.js');
+      (fetchHtml as any).mockResolvedValueOnce(`
+        <html>
+          <body>
+            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
+            </table>
+            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
+            </table>
+            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
+            </table>
+            <h2 id="gemini-tts-model">Gemini TTS</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.50</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$1.00</td></tr>
+            </table>
+            <h2 id="gemini-embedding-model">Gemini Embedding</h2>
+            <table>
+              <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$0.10</td></tr>
+            </table>
+          </body>
+        </html>
+      `);
+
+      const prices = await crawler.crawlPrices();
+
+      // Should filter out TTS and embedding models
+      expect(prices.some(p => p.modelId.includes('tts'))).toBe(false);
+      expect(prices.some(p => p.modelId.includes('embedding'))).toBe(false);
+    });
+
+    it('should throw error when HTML parsing fails', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
@@ -84,142 +139,31 @@ describe('GoogleCrawler', () => {
         </html>
       `);
 
-      const prices = await crawler.crawlPrices();
-
-      // Should return known models as fallback
-      expect(prices.length).toBeGreaterThan(0);
-      expect(prices.some(p => p.modelId.includes('gemini'))).toBe(true);
+      await expect(crawler.crawlPrices()).rejects.toThrow('[google] Could not parse any pricing from HTML');
     });
 
-    it('should fall back to known models on fetch error', async () => {
+    it('should throw error on fetch error', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockRejectedValueOnce(new Error('403 Forbidden'));
 
-      const prices = await crawler.crawlPrices();
-
-      // Should return known models as fallback
-      expect(prices.length).toBeGreaterThan(0);
+      await expect(crawler.crawlPrices()).rejects.toThrow('403 Forbidden');
     });
 
-    it('should deduplicate models', async () => {
+    it('should throw error when too few models found', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
+            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
             <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr><td>Gemini 1.5 Pro</td><td>$1.25</td><td>$5.00</td></tr>
-                <tr><td>Gemini 1.5 Pro</td><td>$1.25</td><td>$5.00</td></tr>
-                <tr><td>Gemini 1.5 Flash</td><td>$0.075</td><td>$0.30</td></tr>
-              </tbody>
+              <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
+              <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
             </table>
           </body>
         </html>
       `);
 
-      const prices = await crawler.crawlPrices();
-
-      const proCount = prices.filter(p =>
-        p.modelId === 'gemini-1.5-pro'
-      ).length;
-      expect(proCount).toBeLessThanOrEqual(1);
-    });
-
-    it('should normalize model IDs', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockResolvedValueOnce(`
-        <html>
-          <body>
-            <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr><td>Gemini 1.5 Pro</td><td>$1.25</td><td>$5.00</td></tr>
-                <tr><td>GEMINI 2.0 FLASH</td><td>$0.10</td><td>$0.40</td></tr>
-              </tbody>
-            </table>
-          </body>
-        </html>
-      `);
-
-      const prices = await crawler.crawlPrices();
-
-      // Model IDs should be lowercase with dashes
-      expect(prices.every(p => p.modelId === p.modelId.toLowerCase())).toBe(true);
-      expect(prices.every(p => !p.modelId.includes(' '))).toBe(true);
-    });
-
-    it('should extract prices from cells correctly', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockResolvedValueOnce(`
-        <html>
-          <body>
-            <table>
-              <thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td>Gemini Flash Lite</td>
-                  <td>$0.0375 per 1 million tokens</td>
-                  <td>$0.15 per 1 million tokens</td>
-                </tr>
-              </tbody>
-            </table>
-          </body>
-        </html>
-      `);
-
-      const prices = await crawler.crawlPrices();
-
-      const flashLite = prices.find(p => p.modelId.includes('lite'));
-      expect(flashLite?.inputPricePerMillion).toBe(0.0375);
-      expect(flashLite?.outputPricePerMillion).toBe(0.15);
-    });
-  });
-
-  describe('known models fallback', () => {
-    it('should include expected Gemini models', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      const modelIds = prices.map(p => p.modelId);
-
-      // Check for various Gemini models
-      expect(modelIds.some(id => id.includes('gemini-1.5-pro'))).toBe(true);
-      expect(modelIds.some(id => id.includes('gemini-1.5-flash'))).toBe(true);
-      expect(modelIds.some(id => id.includes('gemini-2.0'))).toBe(true);
-    });
-
-    it('should have valid pricing data in fallback', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      for (const model of prices) {
-        expect(model.inputPricePerMillion).toBeGreaterThanOrEqual(0);
-        expect(model.outputPricePerMillion).toBeGreaterThanOrEqual(0);
-        expect(model.modelId).toBeTruthy();
-        expect(model.modelName).toBeTruthy();
-      }
-    });
-
-    it('should include context window info where available', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      // Gemini models typically have large context windows
-      const modelsWithContext = prices.filter(p => p.contextWindow !== undefined);
-      expect(modelsWithContext.length).toBeGreaterThan(0);
-
-      // Gemini 1.5 Pro should have 2M context
-      const pro = prices.find(p => p.modelId === 'gemini-1.5-pro');
-      if (pro) {
-        expect(pro.contextWindow).toBe(2000000);
-      }
+      await expect(crawler.crawlPrices()).rejects.toThrow('expected at least 3');
     });
   });
 });

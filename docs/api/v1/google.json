@@ -2,17 +2,61 @@
   "current": {
     "date": "2026-01-12",
     "models": {
-      "gemini-3-pro": {
-        "input": 35,
-        "output": 25
+      "gemini-3-pro-preview": {
+        "input": 2,
+        "output": 12,
+        "cached": 0.2
       },
-      "gemini-3": {
-        "input": 35,
-        "output": 25
+      "gemini-3-flash-preview": {
+        "input": 0.5,
+        "output": 3,
+        "cached": 0.05
       },
-      "gemini-2.5": {
-        "input": 35,
-        "output": 25
+      "gemini-2.5-pro": {
+        "input": 1.25,
+        "output": 10,
+        "cached": 0.125
+      },
+      "gemini-2.5-flash": {
+        "input": 0.3,
+        "output": 2.5,
+        "cached": 0.03
+      },
+      "gemini-2.5-flash-preview": {
+        "input": 0.3,
+        "output": 2.5,
+        "cached": 0.03
+      },
+      "gemini-2.5-flash-lite": {
+        "input": 0.1,
+        "output": 0.4,
+        "cached": 0.01
+      },
+      "gemini-2.5-flash-lite-preview": {
+        "input": 0.1,
+        "output": 0.4,
+        "cached": 0.01
+      },
+      "gemini-2.5-flash-native-audio": {
+        "input": 0.5,
+        "output": 2
+      },
+      "gemini-2.5-flash-image": {
+        "input": 0.3,
+        "output": 0.039
+      },
+      "gemini-2.0-flash": {
+        "input": 0.1,
+        "output": 0.4,
+        "cached": 0.025
+      },
+      "gemini-2.0-flash-lite": {
+        "input": 0.075,
+        "output": 0.3
+      },
+      "gemini-2.5-computer-use-preview-10-2025": {
+        "input": 1.25,
+        "output": 10
       }
     }
   },
