@@ -1,6 +1,6 @@
 {
   "name": "token-costs",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Daily LLM token pricing data with automatic updates",
   "type": "module",
   "main": "dist/npm/index.js",
