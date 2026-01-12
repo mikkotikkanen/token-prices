@@ -3,19 +3,36 @@
  */
 
 /**
+ * Variant pricing for resolution/quality dependent models
+ */
+export interface VariantPricing {
+  /** Input cost for this variant */
+  input?: number;
+  /** Output cost for this variant */
+  output?: number;
+}
+
+/**
  * Pricing data for a single model
  */
 export interface ModelPricing {
   /** Price per 1M input tokens in USD */
-  input: number;
+  input?: number;
   /** Price per 1M output tokens in USD */
-  output: number;
+  output?: number;
   /** Price per 1M cached input tokens in USD (if supported) */
   cached?: number;
   /** Context window size in tokens */
   context?: number;
   /** Maximum output tokens */
   maxOutput?: number;
+
+  /** Image pricing by resolution/quality (per image) */
+  image?: Record<string, VariantPricing>;
+  /** Audio pricing by quality (per minute) */
+  audio?: Record<string, VariantPricing>;
+  /** Video pricing by resolution (per second) */
+  video?: Record<string, VariantPricing>;
 }
 
 /**

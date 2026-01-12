@@ -23,32 +23,42 @@ export class OpenAICrawler extends BaseCrawler {
     }
   }
 
+  // Known model patterns to validate parsed results
+  private readonly KNOWN_MODEL_PATTERNS = [
+    /^gpt-[34]/i,
+    /^o[13]-/i,
+    /^o[13]$/i,
+    /^davinci/i,
+    /^babbage/i,
+    /^ada/i,
+    /^curie/i,
+    /^text-/i,
+    /^code-/i,
+  ];
+
+  private isValidModelName(name: string): boolean {
+    const normalized = name.toLowerCase().trim();
+    // Must match a known pattern
+    if (!this.KNOWN_MODEL_PATTERNS.some(p => p.test(normalized))) {
+      return false;
+    }
+    // Must not be too long (garbage text)
+    if (normalized.length > 30) {
+      return false;
+    }
+    // Must not contain certain words that indicate non-model content
+    const invalidWords = ['price', 'pricing', 'fine-tuning', 'training', 'cost', 'tier', 'text'];
+    if (invalidWords.some(w => normalized === w)) {
+      return false;
+    }
+    return true;
+  }
+
   private parsePricingPage(html: string): ModelPricing[] {
     const $ = cheerio.load(html);
     const models: ModelPricing[] = [];
 
-    // OpenAI uses a structured format - look for pricing tables/cards
-    // The page structure may change, so we try multiple selectors
-
-    // Try to find JSON-LD data first (most reliable if present)
-    const jsonLd = $('script[type="application/ld+json"]').text();
-    if (jsonLd) {
-      try {
-        const data = JSON.parse(jsonLd);
-        // Check if it contains pricing info
-        if (data.offers || data.priceSpecification) {
-          // Parse structured data if available
-        }
-      } catch {
-        // JSON-LD parsing failed, continue with HTML parsing
-      }
-    }
-
-    // Parse pricing tables/sections
-    // OpenAI typically shows models with input/output prices per 1K or 1M tokens
-
-    // Look for pricing data in various formats
-    // Strategy 1: Table rows
+    // Strategy 1: Look for table rows with model pricing
     $('table').each((_, table) => {
       const $table = $(table);
       $table.find('tr').each((_, row) => {
@@ -59,7 +69,7 @@ export class OpenAICrawler extends BaseCrawler {
           const inputPrice = $(cells[1]).text().trim();
           const outputPrice = $(cells[2]).text().trim();
 
-          if (modelName && inputPrice && outputPrice && !isNaN(parsePrice(inputPrice))) {
+          if (modelName && this.isValidModelName(modelName) && !isNaN(parsePrice(inputPrice))) {
             const model = this.parseModelRow(modelName, inputPrice, outputPrice);
             if (model) {
               models.push(model);
@@ -69,46 +79,21 @@ export class OpenAICrawler extends BaseCrawler {
       });
     });
 
-    // Strategy 2: Pricing cards/divs with specific patterns
-    // Look for elements containing price patterns like "$X.XX / 1M tokens"
-    const pricePattern = /\$[\d.]+\s*(?:\/|per)\s*(?:1[KM]|1,?000(?:,?000)?)/i;
+    // Validate results - if we got suspicious data, fall back
+    const validModels = models.filter(m => this.isValidModelName(m.modelName));
 
-    $('[class*="pricing"], [class*="model"], [data-model]').each((_, el) => {
-      const $el = $(el);
-      const text = $el.text();
-
-      if (pricePattern.test(text)) {
-        // Try to extract model info from this element
-        const modelEl = $el.find('[class*="model-name"], h3, h4').first();
-        if (modelEl.length) {
-          const name = modelEl.text().trim();
-          const prices = text.match(/\$[\d.]+/g);
-          if (name && prices && prices.length >= 2) {
-            const inputPrice = parsePrice(prices[0]);
-            const outputPrice = parsePrice(prices[1]);
-
-            // Determine if prices are per 1K or 1M
-            const perMillion = /1M|1,?000,?000/i.test(text);
-
-            models.push({
-              modelId: this.normalizeModelId(name),
-              modelName: name,
-              inputPricePerMillion: perMillion ? inputPrice : inputPrice * 1000,
-              outputPricePerMillion: perMillion ? outputPrice : outputPrice * 1000,
-            });
-          }
-        }
-      }
-    });
-
-    // If we couldn't parse from HTML, use known models as fallback
-    // This ensures we don't fail completely if the page structure changes
-    if (models.length === 0) {
-      console.warn('[openai] Could not parse pricing from HTML, using known models');
+    if (validModels.length === 0) {
+      console.warn('[openai] Could not parse valid pricing from HTML, using known models');
       return this.getKnownModels();
     }
 
-    return this.deduplicateModels(models);
+    // If we got fewer than 3 models, something is probably wrong
+    if (validModels.length < 3) {
+      console.warn(`[openai] Only found ${validModels.length} models, using known models instead`);
+      return this.getKnownModels();
+    }
+
+    return this.deduplicateModels(validModels);
   }
 
   private parseModelRow(

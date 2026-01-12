@@ -286,6 +286,14 @@ export class PricingClient {
   ): Promise<CostResult> {
     const { pricing, date, stale } = await this.getModelPricing(provider, modelId);
 
+    // Validate this is a text model with token pricing
+    if (pricing.input === undefined || pricing.output === undefined) {
+      throw new Error(
+        `Model '${modelId}' does not have token-based pricing. ` +
+        `Use image/audio/video pricing fields instead.`
+      );
+    }
+
     const { inputTokens, outputTokens, cachedInputTokens = 0 } = tokens;
 
     // Calculate costs (prices are per million tokens)
