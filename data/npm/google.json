@@ -1,0 +1,36 @@
+{
+  "current": {
+    "date": "2026-01-12",
+    "models": {
+      "gemini-3-pro": {
+        "input": 35,
+        "output": 25
+      },
+      "gemini-3": {
+        "input": 35,
+        "output": 25
+      },
+      "gemini-2.5": {
+        "input": 35,
+        "output": 25
+      }
+    }
+  },
+  "previous": {
+    "date": "2026-01-11",
+    "models": {
+      "gemini-3-pro": {
+        "input": 35,
+        "output": 25
+      },
+      "gemini-3": {
+        "input": 35,
+        "output": 25
+      },
+      "gemini-2.5": {
+        "input": 35,
+        "output": 25
+      }
+    }
+  }
+}

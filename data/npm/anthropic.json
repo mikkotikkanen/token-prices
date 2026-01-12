@@ -1,0 +1,90 @@
+{
+  "current": {
+    "date": "2026-01-12",
+    "models": {
+      "claude-opus-4": {
+        "input": 15,
+        "output": 75,
+        "context": 200000
+      },
+      "claude-sonnet-4": {
+        "input": 3,
+        "output": 15,
+        "context": 200000
+      },
+      "claude-3.5-sonnet": {
+        "input": 3,
+        "output": 15,
+        "cached": 0.3,
+        "context": 200000
+      },
+      "claude-3.5-haiku": {
+        "input": 0.8,
+        "output": 4,
+        "cached": 0.08,
+        "context": 200000
+      },
+      "claude-3-opus": {
+        "input": 15,
+        "output": 75,
+        "cached": 1.5,
+        "context": 200000
+      },
+      "claude-3-sonnet": {
+        "input": 3,
+        "output": 15,
+        "context": 200000
+      },
+      "claude-3-haiku": {
+        "input": 0.25,
+        "output": 1.25,
+        "cached": 0.03,
+        "context": 200000
+      }
+    }
+  },
+  "previous": {
+    "date": "2026-01-11",
+    "models": {
+      "claude-opus-4": {
+        "input": 15,
+        "output": 75,
+        "context": 200000
+      },
+      "claude-sonnet-4": {
+        "input": 3,
+        "output": 15,
+        "context": 200000
+      },
+      "claude-3.5-sonnet": {
+        "input": 3,
+        "output": 15,
+        "cached": 0.3,
+        "context": 200000
+      },
+      "claude-3.5-haiku": {
+        "input": 0.8,
+        "output": 4,
+        "cached": 0.08,
+        "context": 200000
+      },
+      "claude-3-opus": {
+        "input": 15,
+        "output": 75,
+        "cached": 1.5,
+        "context": 200000
+      },
+      "claude-3-sonnet": {
+        "input": 3,
+        "output": 15,
+        "context": 200000
+      },
+      "claude-3-haiku": {
+        "input": 0.25,
+        "output": 1.25,
+        "cached": 0.03,
+        "context": 200000
+      }
+    }
+  }
+}

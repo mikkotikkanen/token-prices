@@ -1,0 +1,102 @@
+{
+  "current": {
+    "date": "2026-01-12",
+    "models": {
+      "gpt-4o": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000
+      },
+      "gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.6,
+        "context": 128000
+      },
+      "gpt-4-turbo": {
+        "input": 10,
+        "output": 30,
+        "context": 128000
+      },
+      "gpt-4": {
+        "input": 30,
+        "output": 60,
+        "context": 8192
+      },
+      "gpt-3.5-turbo": {
+        "input": 0.5,
+        "output": 1.5,
+        "context": 16385
+      },
+      "o1": {
+        "input": 15,
+        "output": 60,
+        "context": 200000
+      },
+      "o1-mini": {
+        "input": 3,
+        "output": 12,
+        "context": 128000
+      },
+      "o1-pro": {
+        "input": 150,
+        "output": 600,
+        "context": 200000
+      },
+      "o3-mini": {
+        "input": 1.1,
+        "output": 4.4,
+        "context": 200000
+      }
+    }
+  },
+  "previous": {
+    "date": "2026-01-11",
+    "models": {
+      "gpt-4o": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000
+      },
+      "gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.6,
+        "context": 128000
+      },
+      "gpt-4-turbo": {
+        "input": 10,
+        "output": 30,
+        "context": 128000
+      },
+      "gpt-4": {
+        "input": 30,
+        "output": 60,
+        "context": 8192
+      },
+      "gpt-3.5-turbo": {
+        "input": 0.5,
+        "output": 1.5,
+        "context": 16385
+      },
+      "o1": {
+        "input": 15,
+        "output": 60,
+        "context": 200000
+      },
+      "o1-mini": {
+        "input": 3,
+        "output": 12,
+        "context": 128000
+      },
+      "o1-pro": {
+        "input": 150,
+        "output": 600,
+        "context": 200000
+      },
+      "o3-mini": {
+        "input": 1.1,
+        "output": 4.4,
+        "context": 200000
+      }
+    }
+  }
+}

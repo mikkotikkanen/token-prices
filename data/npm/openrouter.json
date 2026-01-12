@@ -1,0 +1,252 @@
+{
+  "current": {
+    "date": "2026-01-12",
+    "models": {
+      "openai/chatgpt-4o-latest": {
+        "input": 5,
+        "output": 15,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/codex-mini": {
+        "input": 1.5,
+        "output": 6,
+        "context": 200000,
+        "maxOutput": 100000
+      },
+      "openai/gpt-3.5-turbo": {
+        "input": 0.5,
+        "output": 1.5,
+        "context": 16385,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-0613": {
+        "input": 1,
+        "output": 2,
+        "context": 4095,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-16k": {
+        "input": 3,
+        "output": 4,
+        "context": 16385,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-instruct": {
+        "input": 1.5,
+        "output": 2,
+        "context": 4095,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4": {
+        "input": 30,
+        "output": 60,
+        "context": 8191,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-0314": {
+        "input": 30,
+        "output": 60,
+        "context": 8191,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-1106-preview": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-turbo": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-turbo-preview": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4.1": {
+        "input": 2,
+        "output": 8,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4.1-mini": {
+        "input": 0.4,
+        "output": 1.6,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4.1-nano": {
+        "input": 0.1,
+        "output": 0.4,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4o": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-2024-05-13": {
+        "input": 5,
+        "output": 15,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4o-2024-08-06": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-2024-11-20": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-audio-preview": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.6,
+        "context": 128000,
+        "maxOutput": 16384
+      }
+    }
+  },
+  "previous": {
+    "date": "2026-01-11",
+    "models": {
+      "openai/chatgpt-4o-latest": {
+        "input": 5,
+        "output": 15,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/codex-mini": {
+        "input": 1.5,
+        "output": 6,
+        "context": 200000,
+        "maxOutput": 100000
+      },
+      "openai/gpt-3.5-turbo": {
+        "input": 0.5,
+        "output": 1.5,
+        "context": 16385,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-0613": {
+        "input": 1,
+        "output": 2,
+        "context": 4095,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-16k": {
+        "input": 3,
+        "output": 4,
+        "context": 16385,
+        "maxOutput": 4096
+      },
+      "openai/gpt-3.5-turbo-instruct": {
+        "input": 1.5,
+        "output": 2,
+        "context": 4095,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4": {
+        "input": 30,
+        "output": 60,
+        "context": 8191,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-0314": {
+        "input": 30,
+        "output": 60,
+        "context": 8191,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-1106-preview": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-turbo": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4-turbo-preview": {
+        "input": 10,
+        "output": 30,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4.1": {
+        "input": 2,
+        "output": 8,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4.1-mini": {
+        "input": 0.4,
+        "output": 1.6,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4.1-nano": {
+        "input": 0.1,
+        "output": 0.4,
+        "context": 1047576,
+        "maxOutput": 32768
+      },
+      "openai/gpt-4o": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-2024-05-13": {
+        "input": 5,
+        "output": 15,
+        "context": 128000,
+        "maxOutput": 4096
+      },
+      "openai/gpt-4o-2024-08-06": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-2024-11-20": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-audio-preview": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000,
+        "maxOutput": 16384
+      },
+      "openai/gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.6,
+        "context": 128000,
+        "maxOutput": 16384
+      }
+    }
+  }
+}
