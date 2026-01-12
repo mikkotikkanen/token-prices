@@ -116,16 +116,7 @@
 
   <h2 id="quick-start">Quick Start</h2>
 
-  <h3>Option 1: Direct Fetch (No Dependencies)</h3>
-  <p>Fetch JSON directly from this site:</p>
-  <pre><code>const response = await fetch('https://mikkotikkanen.github.io/token-costs/api/v1/openai.json');
-const data = await response.json();
-
-const gpt4o = data.current.models['gpt-4o'];
-console.log(`Input: $${gpt4o.input}/M tokens`);
-console.log(`Output: $${gpt4o.output}/M tokens`);</code></pre>
-
-  <h3>Option 2: NPM Package</h3>
+  <h3>Option 1: NPM Package</h3>
   <pre><code>npm install token-costs</code></pre>
   <pre><code>import { PricingClient } from 'token-costs';
 
@@ -141,6 +132,15 @@ const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
   outputTokens: 800,
 });
 console.log(cost.totalCost);  // 0.0165</code></pre>
+
+  <h3>Option 2: Direct Fetch (No Dependencies)</h3>
+  <p>Fetch JSON directly from this site:</p>
+  <pre><code>const response = await fetch('https://mikkotikkanen.github.io/token-costs/api/v1/openai.json');
+const data = await response.json();
+
+const gpt4o = data.current.models['gpt-4o'];
+console.log(`Input: $${gpt4o.input}/M tokens`);
+console.log(`Output: $${gpt4o.output}/M tokens`);</code></pre>
 
   <h2 id="npm-package">NPM Package</h2>
 
@@ -456,6 +456,11 @@ const client = new PricingClient({
   </ul>
 
   <hr style="margin: 3rem 0; border: none; border-top: 1px solid var(--surface);">
-  <p style="text-align: center;"><a href="https://github.com/mikkotikkanen/token-costs">GitHub</a> · MIT License</p>
+  <p style="text-align: center;">
+    <a href="https://github.com/mikkotikkanen/token-costs">GitHub</a> ·
+    <a href="https://github.com/mikkotikkanen/token-costs/issues">Issues</a> ·
+    <a href="https://x.com/mikkotikkanen">@mikkotikkanen</a> ·
+    MIT License
+  </p>
 </body>
 </html>
