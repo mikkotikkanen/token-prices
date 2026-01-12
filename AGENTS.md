@@ -256,6 +256,27 @@ See `src/npm/types.ts` for `image`, `audio`, `video` fields in `ModelPricing`. T
 
 ---
 
+## Moi Subagents
+
+Use moi CLI for GitHub operations (PRs, issues, etc.) instead of `gh` CLI.
+
+**Available commands:**
+```bash
+moi list                              # List available agents (start here)
+moi moi/github "<message>"            # Execute GitHub operations
+```
+
+**Examples:**
+```bash
+# Create a PR
+moi moi/github "Create a pull request on mikkotikkanen/token-costs from branch feature-branch to main with title 'feat: add feature' and body '## Summary\n- Added feature'"
+
+# Check PR status
+moi moi/github "Get the status of PR #1 on mikkotikkanen/token-costs"
+```
+
+---
+
 ## Important Notes
 
 - Always `npm run build` before testing crawlers
