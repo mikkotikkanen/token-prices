@@ -1,5 +1,5 @@
 {
-  "name": "token-prices",
+  "name": "token-costs",
   "version": "1.0.0",
   "description": "Daily LLM token pricing data with automatic updates",
   "type": "module",

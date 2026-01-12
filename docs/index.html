@@ -112,13 +112,13 @@
   <p>Token Prices provides programmatic access to LLM token pricing. Instead of hardcoding prices or scraping pricing pages yourself, fetch daily-updated JSON or use the npm package.</p>
   <p><strong>Supported providers:</strong> OpenAI, Anthropic, Google, OpenRouter</p>
   <p><strong>Update frequency:</strong> Daily at 00:01 UTC</p>
-  <p><strong>Source:</strong> <a href="https://github.com/mikkotikkanen/token-prices">github.com/mikkotikkanen/token-prices</a></p>
+  <p><strong>Source:</strong> <a href="https://github.com/mikkotikkanen/token-costs">github.com/mikkotikkanen/token-costs</a></p>
 
   <h2 id="quick-start">Quick Start</h2>
 
   <h3>Option 1: Direct Fetch (No Dependencies)</h3>
   <p>Fetch JSON directly from this site:</p>
-  <pre><code>const response = await fetch('https://mikkotikkanen.github.io/token-prices/api/v1/openai.json');
+  <pre><code>const response = await fetch('https://mikkotikkanen.github.io/token-costs/api/v1/openai.json');
 const data = await response.json();
 
 const gpt4o = data.current.models['gpt-4o'];
@@ -126,8 +126,8 @@ console.log(`Input: $${gpt4o.input}/M tokens`);
 console.log(`Output: $${gpt4o.output}/M tokens`);</code></pre>
 
   <h3>Option 2: NPM Package</h3>
-  <pre><code>npm install token-prices</code></pre>
-  <pre><code>import { getModelPricing, calculateCost } from 'token-prices';
+  <pre><code>npm install token-costs</code></pre>
+  <pre><code>import { getModelPricing, calculateCost } from 'token-costs';
 
 // Get pricing
 const result = await getModelPricing('openai', 'gpt-4o');
@@ -143,11 +143,11 @@ console.log(cost.totalCost);  // 0.0165</code></pre>
   <h2 id="npm-package">NPM Package</h2>
 
   <h3>Installation</h3>
-  <pre><code>npm install token-prices</code></pre>
+  <pre><code>npm install token-costs</code></pre>
 
   <h3>PricingClient</h3>
   <p>The main class for fetching and caching pricing data:</p>
-  <pre><code>import { PricingClient } from 'token-prices';
+  <pre><code>import { PricingClient } from 'token-costs';
 
 const client = new PricingClient();
 
@@ -173,7 +173,7 @@ const cost = await client.calculateCost('openai', 'gpt-4o', {
 
   <h3>Convenience Functions</h3>
   <p>For quick lookups without creating a client:</p>
-  <pre><code>import { getModelPricing, calculateCost } from 'token-prices';
+  <pre><code>import { getModelPricing, calculateCost } from 'token-costs';
 
 const pricing = await getModelPricing('openai', 'gpt-4o');
 const cost = await calculateCost('anthropic', 'claude-sonnet-4', { inputTokens: 1000, outputTokens: 500 });</code></pre>
@@ -234,7 +234,7 @@ const cost = await calculateCost('openai', 'gpt-4o', { inputTokens: 1000, output
 console.log(`Cost: $${cost.totalCost} (data from ${cost.date}, stale: ${cost.stale})`);</code></pre>
 
   <h3>Error Handling</h3>
-  <pre><code>import { ClockMismatchError } from 'token-prices';
+  <pre><code>import { ClockMismatchError } from 'token-costs';
 
 try {
   const pricing = await getModelPricing('openai', 'gpt-4o');
@@ -317,7 +317,7 @@ try {
 
   <h3>Serverless / Edge Functions</h3>
   <p>In serverless environments, use external cache to avoid refetching on every cold start:</p>
-  <pre><code>import { PricingClient } from 'token-prices';
+  <pre><code>import { PricingClient } from 'token-costs';
 import { Redis } from '@upstash/redis';
 
 const redis = new Redis({ url: process.env.REDIS_URL, token: process.env.REDIS_TOKEN });
@@ -331,7 +331,7 @@ const client = new PricingClient({
 
   <h3>Custom Fetch</h3>
   <p>For environments without global fetch or to add custom headers:</p>
-  <pre><code>import { PricingClient } from 'token-prices';
+  <pre><code>import { PricingClient } from 'token-costs';
 import nodeFetch from 'node-fetch';
 
 const client = new PricingClient({
@@ -341,12 +341,12 @@ const client = new PricingClient({
   <h3>Self-Hosting</h3>
   <p>Mirror the JSON files and point the client to your server:</p>
   <pre><code>const client = new PricingClient({
-  baseUrl: 'https://your-cdn.com/token-prices/api/v1',
+  baseUrl: 'https://your-cdn.com/token-costs/api/v1',
 });</code></pre>
 
   <h2 id="historical">Historical Data</h2>
   <p>Full price change history is stored in the GitHub repository:</p>
-  <p><a href="https://github.com/mikkotikkanen/token-prices/tree/main/history/prices">github.com/mikkotikkanen/token-prices/tree/main/history/prices</a></p>
+  <p><a href="https://github.com/mikkotikkanen/token-costs/tree/main/history/prices">github.com/mikkotikkanen/token-costs/tree/main/history/prices</a></p>
 
   <h3>Historical Format</h3>
   <pre><code>{
@@ -427,6 +427,6 @@ const client = new PricingClient({
   </ul>
 
   <hr style="margin: 3rem 0; border: none; border-top: 1px solid var(--surface);">
-  <p style="text-align: center;"><a href="https://github.com/mikkotikkanen/token-prices">GitHub</a> · MIT License</p>
+  <p style="text-align: center;"><a href="https://github.com/mikkotikkanen/token-costs">GitHub</a> · MIT License</p>
 </body>
 </html>
