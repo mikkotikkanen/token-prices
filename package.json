@@ -44,7 +44,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mikkotikkanen/token-costs.git"
+    "url": "git+https://github.com/mikkotikkanen/token-costs.git"
   },
   "homepage": "https://mikkotikkanen.github.io/token-costs",
   "bugs": {
