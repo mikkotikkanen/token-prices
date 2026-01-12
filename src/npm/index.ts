@@ -3,7 +3,7 @@
  *
  * @example
  * ```ts
- * import { getModelPricing, calculateCost } from 'token-prices';
+ * import { getModelPricing, calculateCost } from 'token-costs';
  *
  * // Get pricing for a model
  * const result = await getModelPricing('openai', 'gpt-4o');

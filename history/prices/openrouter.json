@@ -1,190 +1,130 @@
 {
   "provider": "openrouter",
-  "lastCrawled": "2026-01-12T08:46:33.071Z",
+  "lastCrawled": "2026-01-12T11:41:51.215Z",
   "pricingUrl": "https://openrouter.ai/models",
   "changes": [
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/chatgpt-4o-latest",
-        "modelName": "OpenAI: ChatGPT-4o",
-        "inputPricePerMillion": 5,
-        "outputPricePerMillion": 15,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
-        "metadata": {
-          "description": "OpenAI ChatGPT 4o is continually updated by OpenAI to point to the current version of GPT-4o used by ChatGPT. It therefore differs slightly from the API version of [GPT-4o](/models/openai/gpt-4o) in that it has additional RLHF. It is intended for research and evaluation.\n\nOpenAI notes that this model is not suited for production use-cases as it may be removed or redirected to another model in the future."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/codex-mini",
-        "modelName": "OpenAI: Codex Mini",
-        "inputPricePerMillion": 1.5,
-        "outputPricePerMillion": 6,
-        "contextWindow": 200000,
-        "maxOutputTokens": 100000,
-        "metadata": {
-          "description": "codex-mini-latest is a fine-tuned version of o4-mini specifically for use in Codex CLI. For direct use in the API, we recommend starting with gpt-4.1."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-3.5-turbo",
-        "modelName": "OpenAI: GPT-3.5 Turbo",
-        "inputPricePerMillion": 0.5,
+        "modelId": "x-ai/grok-code-fast-1",
+        "modelName": "xAI: Grok Code Fast 1",
+        "inputPricePerMillion": 0.2,
         "outputPricePerMillion": 1.5,
-        "contextWindow": 16385,
-        "maxOutputTokens": 4096,
+        "contextWindow": 256000,
+        "maxOutputTokens": 10000,
         "metadata": {
-          "description": "GPT-3.5 Turbo is OpenAI's fastest model. It can understand and generate natural language or code, and is optimized for chat and traditional completion tasks.\n\nTraining data up to Sep 2021."
+          "description": "Grok Code Fast 1 is a speedy and economical reasoning model that excels at agentic coding. With reasoning traces visible in the response, developers can steer Grok Code for high-quality work flows."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-3.5-turbo-0613",
-        "modelName": "OpenAI: GPT-3.5 Turbo (older v0613)",
-        "inputPricePerMillion": 1,
-        "outputPricePerMillion": 2,
-        "contextWindow": 4095,
-        "maxOutputTokens": 4096,
-        "metadata": {
-          "description": "GPT-3.5 Turbo is OpenAI's fastest model. It can understand and generate natural language or code, and is optimized for chat and traditional completion tasks.\n\nTraining data up to Sep 2021."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-3.5-turbo-16k",
-        "modelName": "OpenAI: GPT-3.5 Turbo 16k",
+        "modelId": "anthropic/claude-sonnet-4.5",
+        "modelName": "Anthropic: Claude Sonnet 4.5",
         "inputPricePerMillion": 3,
-        "outputPricePerMillion": 4,
-        "contextWindow": 16385,
-        "maxOutputTokens": 4096,
+        "outputPricePerMillion": 15,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
         "metadata": {
-          "description": "This model offers four times the context length of gpt-3.5-turbo, allowing it to support approximately 20 pages of text in a single request at a higher cost. Training data: up to Sep 2021."
+          "description": "Claude Sonnet 4.5 is Anthropic’s most advanced Sonnet model to date, optimized for real-world agents and coding workflows. It delivers state-of-the-art performance on coding benchmarks such as SWE-bench Verified, with improvements across system design, code security, and specification adherence. The model is designed for extended autonomous operation, maintaining task continuity across sessions and providing fact-based progress tracking.\n\nSonnet 4.5 also introduces stronger agentic capabilities, including improved tool orchestration, speculative parallel execution, and more efficient context and memory management. With enhanced context tracking and awareness of token usage across tool calls, it is particularly well-suited for multi-context and long-running workflows. Use cases span software engineering, cybersecurity, financial analysis, research agents, and other domains requiring sustained reasoning and tool use."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-3.5-turbo-instruct",
-        "modelName": "OpenAI: GPT-3.5 Turbo Instruct",
-        "inputPricePerMillion": 1.5,
-        "outputPricePerMillion": 2,
-        "contextWindow": 4095,
-        "maxOutputTokens": 4096,
+        "modelId": "x-ai/grok-4-fast",
+        "modelName": "xAI: Grok 4 Fast",
+        "inputPricePerMillion": 0.2,
+        "outputPricePerMillion": 0.5,
+        "contextWindow": 2000000,
+        "maxOutputTokens": 30000,
         "metadata": {
-          "description": "This model is a variant of GPT-3.5 Turbo tuned for instructional prompts and omitting chat-related optimizations. Training data: up to Sep 2021."
+          "description": "Grok 4 Fast is xAI's latest multimodal model with SOTA cost-efficiency and a 2M token context window. It comes in two flavors: non-reasoning and reasoning. Read more about the model on xAI's [news post](http://x.ai/news/grok-4-fast).\n\nReasoning can be enabled/disabled using the `reasoning` `enabled` parameter in the API. [Learn more in our docs](https://openrouter.ai/docs/use-cases/reasoning-tokens#controlling-reasoning-tokens)"
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4",
-        "modelName": "OpenAI: GPT-4",
-        "inputPricePerMillion": 30,
-        "outputPricePerMillion": 60,
-        "contextWindow": 8191,
-        "maxOutputTokens": 4096,
+        "modelId": "google/gemini-2.5-pro",
+        "modelName": "Google: Gemini 2.5 Pro",
+        "inputPricePerMillion": 1.25,
+        "outputPricePerMillion": 10,
+        "contextWindow": 1048576,
+        "maxOutputTokens": 65536,
         "metadata": {
-          "description": "OpenAI's flagship model, GPT-4 is a large-scale multimodal language model capable of solving difficult problems with greater accuracy than previous models due to its broader general knowledge and advanced reasoning capabilities. Training data: up to Sep 2021."
+          "description": "Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs “thinking” capabilities, enabling it to reason through responses with enhanced accuracy and nuanced context handling. Gemini 2.5 Pro achieves top-tier performance on multiple benchmarks, including first-place positioning on the LMArena leaderboard, reflecting superior human-preference alignment and complex problem-solving abilities."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4-0314",
-        "modelName": "OpenAI: GPT-4 (older v0314)",
-        "inputPricePerMillion": 30,
-        "outputPricePerMillion": 60,
-        "contextWindow": 8191,
-        "maxOutputTokens": 4096,
+        "modelId": "deepseek/deepseek-chat-v3-0324",
+        "modelName": "DeepSeek: DeepSeek V3 0324",
+        "inputPricePerMillion": 0.19,
+        "outputPricePerMillion": 0.87,
+        "contextWindow": 163840,
+        "maxOutputTokens": 65536,
         "metadata": {
-          "description": "GPT-4-0314 is the first version of GPT-4 released, with a context length of 8,192 tokens, and was supported until June 14. Training data: up to Sep 2021."
+          "description": "DeepSeek V3, a 685B-parameter, mixture-of-experts model, is the latest iteration of the flagship chat model family from the DeepSeek team.\n\nIt succeeds the [DeepSeek V3](/deepseek/deepseek-chat-v3) model and performs really well on a variety of tasks."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4-1106-preview",
-        "modelName": "OpenAI: GPT-4 Turbo (older v1106)",
-        "inputPricePerMillion": 10,
-        "outputPricePerMillion": 30,
-        "contextWindow": 128000,
-        "maxOutputTokens": 4096,
+        "modelId": "openai/gpt-oss-120b",
+        "modelName": "OpenAI: gpt-oss-120b",
+        "inputPricePerMillion": 0.039,
+        "outputPricePerMillion": 0.19,
+        "contextWindow": 131072,
+        "maxOutputTokens": null,
         "metadata": {
-          "description": "The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.\n\nTraining data: up to April 2023."
+          "description": "gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases. It activates 5.1B parameters per forward pass and is optimized to run on a single H100 GPU with native MXFP4 quantization. The model supports configurable reasoning depth, full chain-of-thought access, and native tool use, including function calling, browsing, and structured output generation."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4-turbo",
-        "modelName": "OpenAI: GPT-4 Turbo",
-        "inputPricePerMillion": 10,
-        "outputPricePerMillion": 30,
-        "contextWindow": 128000,
-        "maxOutputTokens": 4096,
-        "metadata": {
-          "description": "The latest GPT-4 Turbo model with vision capabilities. Vision requests can now use JSON mode and function calling.\n\nTraining data: up to December 2023."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-4-turbo-preview",
-        "modelName": "OpenAI: GPT-4 Turbo Preview",
-        "inputPricePerMillion": 10,
-        "outputPricePerMillion": 30,
-        "contextWindow": 128000,
-        "maxOutputTokens": 4096,
-        "metadata": {
-          "description": "The preview GPT-4 model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Training data: up to Dec 2023.\n\n**Note:** heavily rate limited by OpenAI while in preview."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-4.1",
-        "modelName": "OpenAI: GPT-4.1",
+        "modelId": "google/gemini-3-pro-preview",
+        "modelName": "Google: Gemini 3 Pro Preview",
         "inputPricePerMillion": 2,
-        "outputPricePerMillion": 8,
-        "contextWindow": 1047576,
-        "maxOutputTokens": 32768,
+        "outputPricePerMillion": 12,
+        "contextWindow": 1048576,
+        "maxOutputTokens": 65536,
         "metadata": {
-          "description": "GPT-4.1 is a flagship large language model optimized for advanced instruction following, real-world software engineering, and long-context reasoning. It supports a 1 million token context window and outperforms GPT-4o and GPT-4.5 across coding (54.6% SWE-bench Verified), instruction compliance (87.4% IFEval), and multimodal understanding benchmarks. It is tuned for precise code diffs, agent reliability, and high recall in large document contexts, making it ideal for agents, IDE tooling, and enterprise knowledge retrieval."
+          "description": "Gemini 3 Pro is Google’s flagship frontier model for high-precision multimodal reasoning, combining strong performance across text, image, video, audio, and code with a 1M-token context window. Reasoning Details must be preserved when using multi-turn tool calling, see our docs here: https://openrouter.ai/docs/use-cases/reasoning-tokens#preserving-reasoning-blocks. It delivers state-of-the-art benchmark results in general reasoning, STEM problem solving, factual QA, and multimodal understanding, including leading scores on LMArena, GPQA Diamond, MathArena Apex, MMMU-Pro, and Video-MMMU. Interactions emphasize depth and interpretability: the model is designed to infer intent with minimal prompting and produce direct, insight-focused responses.\n\nBuilt for advanced development and agentic workflows, Gemini 3 Pro provides robust tool-calling, long-horizon planning stability, and strong zero-shot generation for complex UI, visualization, and coding tasks. It excels at agentic coding (SWE-Bench Verified, Terminal-Bench 2.0), multimodal analysis, and structured long-form tasks such as research synthesis, planning, and interactive learning experiences. Suitable applications include autonomous agents, coding assistants, multimodal analytics, scientific reasoning, and high-context information processing."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "google/gemini-2.5-flash-preview-09-2025",
+        "modelName": "Google: Gemini 2.5 Flash Preview 09-2025",
+        "inputPricePerMillion": 0.3,
+        "outputPricePerMillion": 2.5,
+        "contextWindow": 1048576,
+        "maxOutputTokens": 65536,
+        "metadata": {
+          "description": "Gemini 2.5 Flash Preview September 2025 Checkpoint is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in \"thinking\" capabilities, enabling it to provide responses with greater accuracy and nuanced context handling. \n\nAdditionally, Gemini 2.5 Flash is configurable through the \"max tokens for reasoning\" parameter, as described in the documentation (https://openrouter.ai/docs/use-cases/reasoning-tokens#max-tokens-for-reasoning)."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
         "modelId": "openai/gpt-4.1-mini",
@@ -199,107 +139,167 @@
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4.1-nano",
-        "modelName": "OpenAI: GPT-4.1 Nano",
+        "modelId": "deepseek/deepseek-v3.2-exp",
+        "modelName": "DeepSeek: DeepSeek V3.2 Exp",
+        "inputPricePerMillion": 0.21,
+        "outputPricePerMillion": 0.32,
+        "contextWindow": 163840,
+        "maxOutputTokens": 65536,
+        "metadata": {
+          "description": "DeepSeek-V3.2-Exp is an experimental large language model released by DeepSeek as an intermediate step between V3.1 and future architectures. It introduces DeepSeek Sparse Attention (DSA), a fine-grained sparse attention mechanism designed to improve training and inference efficiency in long-context scenarios while maintaining output quality. Users can control the reasoning behaviour with the `reasoning` `enabled` boolean. [Learn more in our docs](https://openrouter.ai/docs/use-cases/reasoning-tokens#enable-reasoning-with-default-config)\n\nThe model was trained under conditions aligned with V3.1-Terminus to enable direct comparison. Benchmarking shows performance roughly on par with V3.1 across reasoning, coding, and agentic tool-use tasks, with minor tradeoffs and gains depending on the domain. This release focuses on validating architectural optimizations for extended context lengths rather than advancing raw task accuracy, making it primarily a research-oriented model for exploring efficient transformer designs."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "google/gemini-2.5-flash-lite-preview-09-2025",
+        "modelName": "Google: Gemini 2.5 Flash Lite Preview 09-2025",
         "inputPricePerMillion": 0.1,
         "outputPricePerMillion": 0.4,
-        "contextWindow": 1047576,
+        "contextWindow": 1048576,
+        "maxOutputTokens": 65536,
+        "metadata": {
+          "description": "Gemini 2.5 Flash-Lite is a lightweight reasoning model in the Gemini 2.5 family, optimized for ultra-low latency and cost efficiency. It offers improved throughput, faster token generation, and better performance across common benchmarks compared to earlier Flash models. By default, \"thinking\" (i.e. multi-pass reasoning) is disabled to prioritize speed, but developers can enable it via the [Reasoning API parameter](https://openrouter.ai/docs/use-cases/reasoning-tokens) to selectively trade off cost for intelligence. "
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "qwen/qwen3-235b-a22b-2507",
+        "modelName": "Qwen: Qwen3 235B A22B Instruct 2507",
+        "inputPricePerMillion": 0.071,
+        "outputPricePerMillion": 0.463,
+        "contextWindow": 262144,
+        "maxOutputTokens": null,
+        "metadata": {
+          "description": "Qwen3-235B-A22B-Instruct-2507 is a multilingual, instruction-tuned mixture-of-experts language model based on the Qwen3-235B architecture, with 22B active parameters per forward pass. It is optimized for general-purpose text generation, including instruction following, logical reasoning, math, code, and tool usage. The model supports a native 262K context length and does not implement \"thinking mode\" (<think> blocks).\n\nCompared to its base variant, this version delivers significant gains in knowledge coverage, long-context reasoning, coding benchmarks, and alignment with open-ended tasks. It is particularly strong on multilingual understanding, math reasoning (e.g., AIME, HMMT), and alignment evaluations like Arena-Hard and WritingBench."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+        "modelName": "Qwen: Qwen3 Coder 30B A3B Instruct",
+        "inputPricePerMillion": 0.07,
+        "outputPricePerMillion": 0.27,
+        "contextWindow": 160000,
         "maxOutputTokens": 32768,
         "metadata": {
-          "description": "For tasks that demand low latency, GPT‑4.1 nano is the fastest and cheapest model in the GPT-4.1 series. It delivers exceptional performance at a small size with its 1 million token context window, and scores 80.1% on MMLU, 50.3% on GPQA, and 9.8% on Aider polyglot coding – even higher than GPT‑4o mini. It’s ideal for tasks like classification or autocompletion."
+          "description": "Qwen3-Coder-30B-A3B-Instruct is a 30.5B parameter Mixture-of-Experts (MoE) model with 128 experts (8 active per forward pass), designed for advanced code generation, repository-scale understanding, and agentic tool use. Built on the Qwen3 architecture, it supports a native context length of 256K tokens (extendable to 1M with Yarn) and performs strongly in tasks involving function calls, browser use, and structured code completion.\n\nThis model is optimized for instruction-following without “thinking mode”, and integrates well with OpenAI-compatible tool-use formats. "
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4o",
-        "modelName": "OpenAI: GPT-4o",
-        "inputPricePerMillion": 2.5,
+        "modelId": "qwen/qwen3-vl-235b-a22b-instruct",
+        "modelName": "Qwen: Qwen3 VL 235B A22B Instruct",
+        "inputPricePerMillion": 0.2,
+        "outputPricePerMillion": 1.2,
+        "contextWindow": 262144,
+        "maxOutputTokens": null,
+        "metadata": {
+          "description": "Qwen3-VL-235B-A22B Instruct is an open-weight multimodal model that unifies strong text generation with visual understanding across images and video. The Instruct model targets general vision-language use (VQA, document parsing, chart/table extraction, multilingual OCR). The series emphasizes robust perception (recognition of diverse real-world and synthetic categories), spatial understanding (2D/3D grounding), and long-form visual comprehension, with competitive results on public multimodal benchmarks for both perception and reasoning.\n\nBeyond analysis, Qwen3-VL supports agentic interaction and tool use: it can follow complex instructions over multi-image, multi-turn dialogues; align text to video timelines for precise temporal queries; and operate GUI elements for automation tasks. The models also enable visual coding workflows—turning sketches or mockups into code and assisting with UI debugging—while maintaining strong text-only performance comparable to the flagship Qwen3 language models. This makes Qwen3-VL suitable for production scenarios spanning document AI, multilingual OCR, software/UI assistance, spatial/embodied tasks, and research on vision-language agents."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "google/gemini-3-flash-preview",
+        "modelName": "Google: Gemini 3 Flash Preview",
+        "inputPricePerMillion": 0.5,
+        "outputPricePerMillion": 3,
+        "contextWindow": 1048576,
+        "maxOutputTokens": 65535,
+        "metadata": {
+          "description": "Gemini 3 Flash Preview is a high speed, high value thinking model designed for agentic workflows, multi turn chat, and coding assistance. It delivers near Pro level reasoning and tool use performance with substantially lower latency than larger Gemini variants, making it well suited for interactive development, long running agent loops, and collaborative coding tasks. Compared to Gemini 2.5 Flash, it provides broad quality improvements across reasoning, multimodal understanding, and reliability.\n\nThe model supports a 1M token context window and multimodal inputs including text, images, audio, video, and PDFs, with text output. It includes configurable reasoning via thinking levels (minimal, low, medium, high), structured output, tool use, and automatic context caching. Gemini 3 Flash Preview is optimized for users who want strong reasoning and agentic behavior without the cost or latency of full scale frontier models."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "deepseek/deepseek-r1-0528-qwen3-8b",
+        "modelName": "DeepSeek: DeepSeek R1 0528 Qwen3 8B",
+        "inputPricePerMillion": 0.06,
+        "outputPricePerMillion": 0.09,
+        "contextWindow": 128000,
+        "maxOutputTokens": 32000,
+        "metadata": {
+          "description": "DeepSeek-R1-0528 is a lightly upgraded release of DeepSeek R1 that taps more compute and smarter post-training tricks, pushing its reasoning and inference to the brink of flagship models like O3 and Gemini 2.5 Pro.\nIt now tops math, programming, and logic leaderboards, showcasing a step-change in depth-of-thought.\nThe distilled variant, DeepSeek-R1-0528-Qwen3-8B, transfers this chain-of-thought into an 8 B-parameter form, beating standard Qwen3 8B by +10 pp and tying the 235 B “thinking” giant on AIME 2024."
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "openai/gpt-5-codex",
+        "modelName": "OpenAI: GPT-5 Codex",
+        "inputPricePerMillion": 1.25,
         "outputPricePerMillion": 10,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
+        "contextWindow": 400000,
+        "maxOutputTokens": 128000,
         "metadata": {
-          "description": "GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)\n\n#multimodal"
+          "description": "GPT-5-Codex is a specialized version of GPT-5 optimized for software engineering and coding workflows. It is designed for both interactive development sessions and long, independent execution of complex engineering tasks. The model supports building projects from scratch, feature development, debugging, large-scale refactoring, and code review. Compared to GPT-5, Codex is more steerable, adheres closely to developer instructions, and produces cleaner, higher-quality code outputs. Reasoning effort can be adjusted with the `reasoning.effort` parameter. Read the [docs here](https://openrouter.ai/docs/use-cases/reasoning-tokens#reasoning-effort-level)\n\nCodex integrates into developer environments including the CLI, IDE extensions, GitHub, and cloud tasks. It adapts reasoning effort dynamically—providing fast responses for small tasks while sustaining extended multi-hour runs for large projects. The model is trained to perform structured code reviews, catching critical flaws by reasoning over dependencies and validating behavior against tests. It also supports multimodal inputs such as images or screenshots for UI development and integrates tool use for search, dependency installation, and environment setup. Codex is intended specifically for agentic coding applications."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4o-2024-05-13",
-        "modelName": "OpenAI: GPT-4o (2024-05-13)",
-        "inputPricePerMillion": 5,
-        "outputPricePerMillion": 15,
-        "contextWindow": 128000,
-        "maxOutputTokens": 4096,
+        "modelId": "minimax/minimax-m2.1",
+        "modelName": "MiniMax: MiniMax M2.1",
+        "inputPricePerMillion": 0.28,
+        "outputPricePerMillion": 1.2,
+        "contextWindow": 196608,
+        "maxOutputTokens": null,
         "metadata": {
-          "description": "GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)\n\n#multimodal"
+          "description": "MiniMax-M2.1 is a lightweight, state-of-the-art large language model optimized for coding, agentic workflows, and modern application development. With only 10 billion activated parameters, it delivers a major jump in real-world capability while maintaining exceptional latency, scalability, and cost efficiency.\n\nCompared to its predecessor, M2.1 delivers cleaner, more concise outputs and faster perceived response times. It shows leading multilingual coding performance across major systems and application languages, achieving 49.4% on Multi-SWE-Bench and 72.5% on SWE-Bench Multilingual, and serves as a versatile agent “brain” for IDEs, coding tools, and general-purpose assistance.\n\nTo avoid degrading this model's performance, MiniMax highly recommends preserving reasoning between turns. Learn more about using reasoning_details to pass back reasoning in our [docs](https://openrouter.ai/docs/use-cases/reasoning-tokens#preserving-reasoning-blocks)."
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4o-2024-08-06",
-        "modelName": "OpenAI: GPT-4o (2024-08-06)",
-        "inputPricePerMillion": 2.5,
-        "outputPricePerMillion": 10,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
+        "modelId": "deepseek/deepseek-v3.1-terminus",
+        "modelName": "DeepSeek: DeepSeek V3.1 Terminus",
+        "inputPricePerMillion": 0.21,
+        "outputPricePerMillion": 0.79,
+        "contextWindow": 163840,
+        "maxOutputTokens": null,
         "metadata": {
-          "description": "The 2024-08-06 version of GPT-4o offers improved performance in structured outputs, with the ability to supply a JSON schema in the respone_format. Read more [here](https://openai.com/index/introducing-structured-outputs-in-the-api/).\n\nGPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)"
+          "description": "DeepSeek-V3.1 Terminus is an update to [DeepSeek V3.1](/deepseek/deepseek-chat-v3.1) that maintains the model's original capabilities while addressing issues reported by users, including language consistency and agent capabilities, further optimizing the model's performance in coding and search agents. It is a large hybrid reasoning model (671B parameters, 37B active) that supports both thinking and non-thinking modes. It extends the DeepSeek-V3 base with a two-phase long-context training process, reaching up to 128K tokens, and uses FP8 microscaling for efficient inference. Users can control the reasoning behaviour with the `reasoning` `enabled` boolean. [Learn more in our docs](https://openrouter.ai/docs/use-cases/reasoning-tokens#enable-reasoning-with-default-config)\n\nThe model improves tool use, code generation, and reasoning efficiency, achieving performance comparable to DeepSeek-R1 on difficult benchmarks while responding more quickly. It supports structured tool calling, code agents, and search agents, making it suitable for research, coding, and agentic workflows. "
         }
       }
     },
     {
-      "date": "2026-01-11",
+      "date": "2026-01-12",
       "changeType": "added",
       "pricing": {
-        "modelId": "openai/gpt-4o-2024-11-20",
-        "modelName": "OpenAI: GPT-4o (2024-11-20)",
-        "inputPricePerMillion": 2.5,
-        "outputPricePerMillion": 10,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
+        "modelId": "openai/gpt-5-nano",
+        "modelName": "OpenAI: GPT-5 Nano",
+        "inputPricePerMillion": 0.05,
+        "outputPricePerMillion": 0.4,
+        "contextWindow": 400000,
+        "maxOutputTokens": 128000,
         "metadata": {
-          "description": "The 2024-11-20 version of GPT-4o offers a leveled-up creative writing ability with more natural, engaging, and tailored writing to improve relevance & readability. It’s also better at working with uploaded files, providing deeper insights & more thorough responses.\n\nGPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-4o-audio-preview",
-        "modelName": "OpenAI: GPT-4o Audio",
-        "inputPricePerMillion": 2.5,
-        "outputPricePerMillion": 10,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
-        "metadata": {
-          "description": "The gpt-4o-audio-preview model adds support for audio inputs as prompts. This enhancement allows the model to detect nuances within audio recordings and add depth to generated user experiences. Audio outputs are currently not supported. Audio tokens are priced at $40 per million input audio tokens."
-        }
-      }
-    },
-    {
-      "date": "2026-01-11",
-      "changeType": "added",
-      "pricing": {
-        "modelId": "openai/gpt-4o-mini",
-        "modelName": "OpenAI: GPT-4o-mini",
-        "inputPricePerMillion": 0.15,
-        "outputPricePerMillion": 0.6,
-        "contextWindow": 128000,
-        "maxOutputTokens": 16384,
-        "metadata": {
-          "description": "GPT-4o mini is OpenAI's newest model after [GPT-4 Omni](/models/openai/gpt-4o), supporting both text and image inputs with text outputs.\n\nAs their most advanced small model, it is many multiples more affordable than other recent frontier models, and more than 60% cheaper than [GPT-3.5 Turbo](/models/openai/gpt-3.5-turbo). It maintains SOTA intelligence, while being significantly more cost-effective.\n\nGPT-4o mini achieves an 82% score on MMLU and presently ranks higher than GPT-4 on chat preferences [common leaderboards](https://arena.lmsys.org/).\n\nCheck out the [launch announcement](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/) to learn more.\n\n#multimodal"
+          "description": "GPT-5-Nano is the smallest and fastest variant in the GPT-5 system, optimized for developer tools, rapid interactions, and ultra-low latency environments. While limited in reasoning depth compared to its larger counterparts, it retains key instruction-following and safety features. It is the successor to GPT-4.1-nano and offers a lightweight option for cost-sensitive or real-time applications."
         }
       }
     }

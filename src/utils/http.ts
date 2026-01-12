@@ -1,6 +1,6 @@
 import fetch, { RequestInit, Response } from 'node-fetch';
 
-const USER_AGENT = 'token-prices-crawler/1.0 (+https://github.com/anthropics/token-prices; automated price tracking)';
+const USER_AGENT = 'token-costs-crawler/1.0 (+https://github.com/mikkotikkanen/token-costs; automated price tracking)';
 
 /**
  * Default headers for all requests

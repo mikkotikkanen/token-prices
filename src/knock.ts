@@ -121,8 +121,8 @@ async function runKnock(): Promise<void> {
   }
 
   console.log();
-  console.log('Project: https://github.com/mikkotikkanen/token-prices');
-  console.log('User-Agent: token-prices-crawler/1.0');
+  console.log('Project: https://github.com/mikkotikkanen/token-costs');
+  console.log('User-Agent: token-costs-crawler/1.0');
   console.log();
 }
 

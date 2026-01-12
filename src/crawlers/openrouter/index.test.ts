@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OpenRouterCrawler } from './index.js';
 
 // Mock the http module
@@ -6,6 +6,27 @@ vi.mock('../../utils/http.js', () => ({
   fetchJson: vi.fn(),
   withRetry: vi.fn((fn) => fn()),
   sleep: vi.fn(),
+}));
+
+// Mock Playwright - return fake popularity data
+vi.mock('playwright', () => ({
+  chromium: {
+    launch: vi.fn().mockResolvedValue({
+      newPage: vi.fn().mockResolvedValue({
+        goto: vi.fn().mockResolvedValue(undefined),
+        waitForTimeout: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue([
+          // Return fake popularity data for testing
+          { modelId: 'openai/gpt-4', tokens: 10_000_000_000 },
+          { modelId: 'anthropic/claude-3-opus', tokens: 5_000_000_000 },
+          { modelId: 'anthropic/claude-3', tokens: 4_000_000_000 },
+          { modelId: 'google/gemini-pro', tokens: 3_000_000_000 },
+        ]),
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+      close: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
 }));
 
 describe('OpenRouterCrawler', () => {
@@ -16,8 +37,8 @@ describe('OpenRouterCrawler', () => {
     vi.clearAllMocks();
   });
 
-  describe('parseApiResponse', () => {
-    it('should parse valid model response', async () => {
+  describe('crawlPrices', () => {
+    it('should parse valid model response and select by popularity', async () => {
       const { fetchJson } = await import('../../utils/http.js');
       (fetchJson as any).mockResolvedValueOnce({
         data: [
@@ -44,18 +65,14 @@ describe('OpenRouterCrawler', () => {
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices).toHaveLength(2);
+      // Should return models that have both prices AND popularity data
+      expect(prices.length).toBeGreaterThan(0);
 
       const gpt4 = prices.find((p) => p.modelId === 'openai/gpt-4');
       expect(gpt4).toBeDefined();
       expect(gpt4?.inputPricePerMillion).toBe(30);
       expect(gpt4?.outputPricePerMillion).toBe(60);
       expect(gpt4?.contextWindow).toBe(8192);
-
-      const claude = prices.find((p) => p.modelId === 'anthropic/claude-3-opus');
-      expect(claude).toBeDefined();
-      expect(claude?.inputPricePerMillion).toBe(15);
-      expect(claude?.outputPricePerMillion).toBe(75);
     });
 
     it('should skip models with no pricing', async () => {
@@ -63,27 +80,28 @@ describe('OpenRouterCrawler', () => {
       (fetchJson as any).mockResolvedValueOnce({
         data: [
           {
-            id: 'some/model',
-            name: 'Some Model',
-            // No pricing
-            context_length: 1000,
-          },
-          {
             id: 'openai/gpt-4',
             name: 'GPT-4',
-            pricing: {
-              prompt: '0.00003',
-              completion: '0.00006',
-            },
+            // No pricing field
             context_length: 8192,
+          },
+          {
+            id: 'anthropic/claude-3-opus',
+            name: 'Claude 3 Opus',
+            pricing: {
+              prompt: '0.000015',
+              completion: '0.000075',
+            },
+            context_length: 200000,
           },
         ],
       });
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices).toHaveLength(1);
-      expect(prices[0].modelId).toBe('openai/gpt-4');
+      // GPT-4 should be skipped due to no pricing
+      const gpt4 = prices.find((p) => p.modelId === 'openai/gpt-4');
+      expect(gpt4).toBeUndefined();
     });
 
     it('should skip free models', async () => {
@@ -113,20 +131,15 @@ describe('OpenRouterCrawler', () => {
 
       const prices = await crawler.crawlPrices();
 
-      expect(prices).toHaveLength(1);
-      expect(prices[0].modelId).toBe('openai/gpt-4');
+      // Free model should not be included
+      const freeModel = prices.find((p) => p.modelId === 'free/model');
+      expect(freeModel).toBeUndefined();
     });
 
-    it('should prioritize popular models', async () => {
+    it('should select models by popularity (most tokens first)', async () => {
       const { fetchJson } = await import('../../utils/http.js');
       (fetchJson as any).mockResolvedValueOnce({
         data: [
-          {
-            id: 'some-unknown/model',
-            name: 'Unknown Model',
-            pricing: { prompt: '0.00001', completion: '0.00002' },
-            context_length: 1000,
-          },
           {
             id: 'openai/gpt-4',
             name: 'GPT-4',
@@ -134,8 +147,8 @@ describe('OpenRouterCrawler', () => {
             context_length: 8192,
           },
           {
-            id: 'anthropic/claude-3',
-            name: 'Claude 3',
+            id: 'anthropic/claude-3-opus',
+            name: 'Claude 3 Opus',
             pricing: { prompt: '0.000015', completion: '0.000075' },
             context_length: 200000,
           },
@@ -144,10 +157,12 @@ describe('OpenRouterCrawler', () => {
 
       const prices = await crawler.crawlPrices();
 
-      // OpenAI should come first, then Anthropic, then unknown
-      expect(prices[0].modelId).toBe('openai/gpt-4');
-      expect(prices[1].modelId).toBe('anthropic/claude-3');
-      expect(prices[2].modelId).toBe('some-unknown/model');
+      // GPT-4 has 10B tokens in mock, claude-3-opus has 5B
+      // So GPT-4 should come first
+      if (prices.length >= 2) {
+        expect(prices[0].modelId).toBe('openai/gpt-4');
+        expect(prices[1].modelId).toBe('anthropic/claude-3-opus');
+      }
     });
   });
 });

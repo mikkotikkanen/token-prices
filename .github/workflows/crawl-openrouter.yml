@@ -29,12 +29,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npx playwright install chromium
+
       - name: Run OpenRouter crawler
         run: npm run crawl:openrouter
-        env:
-          # Only crawl popular models to avoid overwhelming their API
-          # The crawler is configured to limit to 200 most popular models
-          MAX_MODELS: '200'
 
       - name: Generate npm data
         run: npm run generate:npm -- openrouter

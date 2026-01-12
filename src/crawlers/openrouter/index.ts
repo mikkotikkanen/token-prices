@@ -1,3 +1,4 @@
+import { chromium, Browser, Page } from 'playwright';
 import { BaseCrawler } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
 import { fetchJson, withRetry, sleep } from '../../utils/http.js';
@@ -30,27 +31,130 @@ interface OpenRouterModelsResponse {
 }
 
 /**
- * Popular model prefixes to prioritize
- * This helps us avoid overwhelming OpenRouter with requests
- * and focuses on the most commonly used models
+ * Provider slugs to scrape for popularity data
  */
-const POPULAR_MODEL_PREFIXES = [
-  'openai/',
-  'anthropic/',
-  'google/',
-  'deepseek/',
-  'perplexity/',
-  'qwen/',
-  'moonshotai/',
-  'z-ai/',
-  'minimax/',
+const PROVIDERS_TO_SCRAPE = [
+  'openai',
+  'anthropic',
+  'google',
+  'deepseek',
+  'perplexity',
+  'qwen',
+  'moonshotai',
+  'z-ai',
+  'minimax',
+  'x-ai',
 ];
 
 /**
- * Maximum number of models to include
- * Set to limit file size and API load
+ * Maximum models per provider (hard cap)
+ */
+const MAX_MODELS_PER_PROVIDER = 5;
+
+/**
+ * Minimum usage threshold relative to provider's top model.
+ * Models must have at least this percentage of the top model's usage to be included.
+ * E.g., 0.1 means a model needs 10% of the top model's tokens to qualify.
+ */
+const MIN_RELATIVE_USAGE = 0.1;
+
+/**
+ * Maximum total models to include
  */
 const MAX_MODELS = 20;
+
+/**
+ * Scrape a provider page to get model usage stats
+ */
+async function scrapeProviderPopularity(
+  browser: Browser,
+  providerSlug: string
+): Promise<Map<string, number>> {
+  const page = await browser.newPage();
+  const popularity = new Map<string, number>();
+
+  try {
+    console.log(`[openrouter] Scraping popularity for ${providerSlug}...`);
+    await page.goto(`https://openrouter.ai/${providerSlug}`, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+    await page.waitForTimeout(2000);
+
+    const models = await page.evaluate((provider) => {
+      const results: { modelId: string; tokens: number }[] = [];
+      const bodyText = (document.body as HTMLElement).innerText;
+      const lines = bodyText.split('\n').map((l: string) => l.trim()).filter((l: string) => l);
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Match usage pattern like "4.58B tokens", "22.9M tokens"
+        const usageMatch = line.match(/^([\d.]+)([BMK])\s*tokens$/i);
+
+        if (usageMatch) {
+          const modelName = lines[i - 1];
+          if (modelName && modelName.includes(':')) {
+            let tokens = parseFloat(usageMatch[1]);
+            const suffix = usageMatch[2].toUpperCase();
+
+            if (suffix === 'B') tokens *= 1_000_000_000;
+            else if (suffix === 'M') tokens *= 1_000_000;
+            else if (suffix === 'K') tokens *= 1_000;
+
+            // Find the model ID from links
+            const links = Array.from(document.querySelectorAll(`a[href^="/${provider}/"]`)) as HTMLAnchorElement[];
+            const searchText = modelName.split(':')[1]?.trim();
+            const link = links.find((l: HTMLAnchorElement) => searchText && l.textContent?.includes(searchText));
+            const href = link?.getAttribute('href');
+            const modelId = href ? href.slice(1) : null;
+
+            if (modelId) {
+              results.push({ modelId, tokens });
+            }
+          }
+        }
+      }
+      return results;
+    }, providerSlug);
+
+    // Dedupe and add to map
+    const seen = new Set<string>();
+    for (const m of models) {
+      if (!seen.has(m.modelId)) {
+        seen.add(m.modelId);
+        popularity.set(m.modelId, m.tokens);
+      }
+    }
+  } catch (error) {
+    console.error(`[openrouter] Failed to scrape ${providerSlug}:`, error);
+  } finally {
+    await page.close();
+  }
+
+  return popularity;
+}
+
+/**
+ * Scrape all provider pages for popularity data
+ */
+async function scrapeAllPopularity(): Promise<Map<string, number>> {
+  const allPopularity = new Map<string, number>();
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    for (const provider of PROVIDERS_TO_SCRAPE) {
+      const providerPopularity = await scrapeProviderPopularity(browser, provider);
+      for (const [modelId, tokens] of providerPopularity) {
+        allPopularity.set(modelId, tokens);
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+
+  console.log(`[openrouter] Scraped popularity for ${allPopularity.size} models`);
+  return allPopularity;
+}
 
 /**
  * Parse a single OpenRouter model into our pricing format
@@ -96,7 +200,7 @@ function parseOpenRouterModel(model: OpenRouterModel, includeMetadata = false): 
 
 /**
  * OpenRouter price crawler
- * Uses OpenRouter's public API to fetch model prices
+ * Uses OpenRouter's public API for prices and scrapes provider pages for popularity
  */
 export class OpenRouterCrawler extends BaseCrawler {
   readonly provider: Provider = 'openrouter';
@@ -104,56 +208,88 @@ export class OpenRouterCrawler extends BaseCrawler {
   readonly apiUrl = 'https://openrouter.ai/api/v1/models';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    // OpenRouter provides a public API for model information
+    // First, scrape popularity data from provider pages
+    const popularity = await scrapeAllPopularity();
+
+    // Then fetch prices from API
     const response = await withRetry(() =>
       fetchJson<OpenRouterModelsResponse>(this.apiUrl)
     );
 
-    return this.parseApiResponse(response);
+    return this.selectTopModels(response, popularity);
   }
 
-  private parseApiResponse(response: OpenRouterModelsResponse): ModelPricing[] {
+  private selectTopModels(
+    response: OpenRouterModelsResponse,
+    popularity: Map<string, number>
+  ): ModelPricing[] {
+    // Parse all models
     const allModels = response.data
       .map(model => parseOpenRouterModel(model, true))
       .filter((m): m is ModelPricing => m !== null);
 
-    // Sort models by popularity (popular prefixes first, then alphabetically)
-    const sortedModels = this.sortByPopularity(allModels);
+    // Create a lookup map
+    const modelMap = new Map(allModels.map(m => [m.modelId, m]));
 
-    // Return top N models to avoid overly large files
-    const limitedModels = sortedModels.slice(0, MAX_MODELS);
+    // Group popularity by provider and find top model per provider
+    const providerTopTokens = new Map<string, number>();
+    for (const [modelId, tokens] of popularity) {
+      const provider = modelId.split('/')[0];
+      const current = providerTopTokens.get(provider) || 0;
+      if (tokens > current) {
+        providerTopTokens.set(provider, tokens);
+      }
+    }
 
-    console.log(
-      `[openrouter] Found ${allModels.length} total models, returning top ${limitedModels.length}`
-    );
+    // Sort models by popularity (tokens processed)
+    const sortedByPopularity = Array.from(popularity.entries())
+      .sort((a, b) => b[1] - a[1]);
 
-    return limitedModels;
-  }
+    // Select models with drop-off heuristic
+    const selectedModels: ModelPricing[] = [];
+    const selectedIds = new Set<string>();
+    const providerCounts = new Map<string, number>();
 
-  private sortByPopularity(models: ModelPricing[]): ModelPricing[] {
-    return models.sort((a, b) => {
-      const aPopularIndex = POPULAR_MODEL_PREFIXES.findIndex(prefix =>
-        a.modelId.startsWith(prefix)
-      );
-      const bPopularIndex = POPULAR_MODEL_PREFIXES.findIndex(prefix =>
-        b.modelId.startsWith(prefix)
-      );
+    for (const [modelId, tokens] of sortedByPopularity) {
+      if (selectedModels.length >= MAX_MODELS) break;
 
-      // Both popular - sort by prefix order, then alphabetically
-      if (aPopularIndex !== -1 && bPopularIndex !== -1) {
-        if (aPopularIndex !== bPopularIndex) {
-          return aPopularIndex - bPopularIndex;
-        }
-        return a.modelId.localeCompare(b.modelId);
+      const model = modelMap.get(modelId);
+      if (!model) continue;
+
+      if (selectedIds.has(modelId)) continue;
+
+      const provider = modelId.split('/')[0];
+      const currentCount = providerCounts.get(provider) || 0;
+
+      // Hard cap per provider
+      if (currentCount >= MAX_MODELS_PER_PROVIDER) continue;
+
+      // Drop-off heuristic: skip if usage is too low compared to provider's top model
+      const topTokens = providerTopTokens.get(provider) || 0;
+      const relativeUsage = topTokens > 0 ? tokens / topTokens : 0;
+
+      if (relativeUsage < MIN_RELATIVE_USAGE) {
+        const pct = (relativeUsage * 100).toFixed(1);
+        console.log(`[openrouter] Skipping ${modelId} (only ${pct}% of top model's usage)`);
+        continue;
       }
 
-      // Only one is popular
-      if (aPopularIndex !== -1) return -1;
-      if (bPopularIndex !== -1) return 1;
+      selectedModels.push(model);
+      selectedIds.add(modelId);
+      providerCounts.set(provider, currentCount + 1);
 
-      // Neither is popular - sort alphabetically
-      return a.modelId.localeCompare(b.modelId);
-    });
+      const tokensFormatted = tokens >= 1e9
+        ? `${(tokens / 1e9).toFixed(1)}B`
+        : `${(tokens / 1e6).toFixed(0)}M`;
+      const pct = (relativeUsage * 100).toFixed(0);
+      console.log(`[openrouter] Selected ${modelId} (${tokensFormatted} tokens, ${pct}% of top)`);
+    }
+
+    console.log(
+      `[openrouter] Found ${allModels.length} total models, selected ${selectedModels.length} by popularity`
+    );
+
+    return selectedModels;
   }
 }
 

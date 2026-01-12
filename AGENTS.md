@@ -39,6 +39,47 @@ npm run generate:npm   # Generate API files from history
 
 ---
 
+## Commits and Releases
+
+We use **conventional commits** for automatic versioning via semantic-release.
+
+**Commit format:**
+```
+type(scope): description
+
+[optional body]
+```
+
+**Version bumps:**
+- `fix:` → patch (1.0.x)
+- `feat:` → minor (1.x.0)
+- `feat!:` or `BREAKING CHANGE:` → major (x.0.0)
+
+**Examples:**
+```bash
+git commit -m "fix: handle empty API response in OpenRouter crawler"
+git commit -m "feat: add support for audio pricing"
+git commit -m "feat!: change price format from per-token to per-million"
+```
+
+**Release process:**
+1. Make changes and commit using conventional commits
+2. Push to `main` branch
+3. GitHub Actions runs tests, then semantic-release:
+   - Analyzes commits since last release
+   - Determines version bump
+   - Updates package.json version
+   - Publishes to npm with provenance
+   - Creates GitHub release with changelog
+
+**Manual release (if needed):**
+```bash
+npm run build && npm test
+npx semantic-release --dry-run  # Preview what would happen
+```
+
+---
+
 ## Full Development Guide
 
 ### Data Flow
@@ -103,9 +144,21 @@ All crawlers extend `BaseCrawler`. See `src/crawlers/base.ts` for:
 
 Reference existing crawlers for patterns:
 - `src/crawlers/openai/index.ts` - HTML scraping with cheerio
-- `src/crawlers/openrouter/index.ts` - API-based (JSON endpoint)
+- `src/crawlers/openrouter/index.ts` - API + Playwright (scrapes popularity from provider pages)
 - `src/crawlers/anthropic/index.ts`
 - `src/crawlers/google/index.ts`
+
+### OpenRouter Model Selection
+
+OpenRouter has hundreds of models. We select only the most popular ones using actual usage data:
+
+1. **Scrape provider pages** - Visit each provider's page on OpenRouter (e.g., `/openai`, `/anthropic`) to get token usage stats
+2. **Drop-off heuristic** - Only include models with ≥10% of their provider's top model's usage. This filters out rarely-used models.
+3. **Hard caps** - Max 5 models per provider, max 20 total
+
+**Providers scraped:** openai, anthropic, google, deepseek, perplexity, qwen, moonshotai, z-ai, minimax, x-ai
+
+To add a provider to OpenRouter scraping, update `PROVIDERS_TO_SCRAPE` in `src/crawlers/openrouter/index.ts`.
 
 Each crawler must:
 1. Extend `BaseCrawler`
@@ -211,3 +264,5 @@ See `src/npm/types.ts` for `image`, `audio`, `video` fields in `ModelPricing`. T
 - Model IDs must match provider API identifiers
 - History files are append-only (changes never deleted)
 - API files are regenerated from history
+- OpenRouter crawler uses Playwright to scrape popularity data from provider pages
+- Run `npx playwright install chromium` if browser is missing for OpenRouter crawler
