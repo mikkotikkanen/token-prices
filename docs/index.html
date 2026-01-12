@@ -226,6 +226,35 @@
       flex-direction: column;
       gap: 0.75rem;
       align-items: center;
+      justify-content: center;
+      margin-top: 5rem;
+    }
+
+    .install-tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .install-tab {
+      padding: 0.375rem 0.75rem;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .install-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .install-tab.active {
+      background: var(--bg-subtle);
+      color: var(--text);
     }
 
     .hero-install {
@@ -744,21 +773,23 @@
       <h1>LLM <span>Pricing</span> Data</h1>
       <p class="hero-description">Daily-updated token pricing for OpenAI, Anthropic, Google, and OpenRouter. Stop hardcoding prices.</p>
       <div class="hero-actions">
+        <div class="install-tabs">
+          <button class="install-tab active" onclick="switchInstallTab('npm')">npm</button>
+          <button class="install-tab" onclick="switchInstallTab('pnpm')">pnpm</button>
+          <button class="install-tab" onclick="switchInstallTab('yarn')">yarn</button>
+          <button class="install-tab" onclick="switchInstallTab('bun')">bun</button>
+        </div>
         <div class="hero-install">
-          <code><span>npm</span> install token-costs</code>
-          <button class="copy-btn" onclick="copyToClipboard('npm install token-costs', this)" aria-label="Copy">
+          <code id="install-command"><span>npm</span> install token-costs</code>
+          <button class="copy-btn" id="install-copy-btn" onclick="copyInstallCommand(this)" aria-label="Copy">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </button>
-        </div>
-        <div class="hero-links">
-          <a href="#api-endpoints">JSON API</a>
-          <a href="https://github.com/mikkotikkanen/token-costs">GitHub</a>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="providers-strip">
+  <!-- <div class="providers-strip">
     <div class="providers-strip-inner">
       <span>OpenAI</span>
       <span class="dot"></span>
@@ -768,7 +799,7 @@
       <span class="dot"></span>
       <span>OpenRouter</span>
     </div>
-  </div>
+  </div> -->
 
   <main>
     <section id="overview">
@@ -776,7 +807,7 @@
       <p>Token Costs provides programmatic access to LLM token pricing. Instead of hardcoding prices or scraping pricing pages yourself, fetch daily-updated JSON or use the npm package.</p>
       <p><strong>Supported providers:</strong> OpenAI, Anthropic, Google, OpenRouter</p>
       <p><strong>Update frequency:</strong> Daily at 00:01 UTC</p>
-      <p><strong>Source:</strong> <a href="https://github.com/mikkotikkanen/token-costs">github.com/mikkotikkanen/token-costs</a></p>
+      <!-- <p><strong>Source:</strong> <a href="https://github.com/mikkotikkanen/token-costs">github.com/mikkotikkanen/token-costs</a></p> -->
     </section>
 
     <section id="quick-start">
@@ -1224,6 +1255,27 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
           btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
         }, 2000);
       });
+    }
+
+    const installCommands = {
+      npm: { cmd: 'npm install token-costs', display: '<span>npm</span> install token-costs' },
+      pnpm: { cmd: 'pnpm add token-costs', display: '<span>pnpm</span> add token-costs' },
+      yarn: { cmd: 'yarn add token-costs', display: '<span>yarn</span> add token-costs' },
+      bun: { cmd: 'bun add token-costs', display: '<span>bun</span> add token-costs' }
+    };
+
+    let currentPkgManager = 'npm';
+
+    function switchInstallTab(manager) {
+      currentPkgManager = manager;
+      document.querySelectorAll('.install-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent === manager);
+      });
+      document.getElementById('install-command').innerHTML = installCommands[manager].display;
+    }
+
+    function copyInstallCommand(btn) {
+      copyToClipboard(installCommands[currentPkgManager].cmd, btn);
     }
 
     // Close mobile nav on escape
