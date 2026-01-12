@@ -4,7 +4,7 @@ import * as path from 'path';
 import { PricingClient, ClockMismatchError } from './client.js';
 import type { ProviderFile } from './types.js';
 
-const DATA_DIR = path.join(process.cwd(), 'data', 'npm');
+const DATA_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
 
 // Helper to create a mock fetch that serves local files
 function createLocalFetch(dataDir: string) {

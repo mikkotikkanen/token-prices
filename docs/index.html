@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Prices - LLM Pricing Data</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --primary: #e94560;
+      --text: #eee;
+      --muted: #888;
+      --code-bg: #0f0f1a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { color: var(--primary); margin-bottom: 0.5rem; }
+    h2 { margin-top: 2rem; margin-bottom: 1rem; color: var(--text); }
+    p { margin-bottom: 1rem; color: var(--muted); }
+    a { color: var(--primary); }
+    code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: var(--code-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    pre code { padding: 0; background: none; }
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .provider {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .provider h3 { margin-bottom: 0.5rem; }
+    .provider a { font-size: 0.9em; }
+    .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8em;
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Token Prices</h1>
+  <p>Daily updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.</p>
+
+  <h2>API Endpoints</h2>
+  <p>JSON data files are available at:</p>
+  <div class="providers">
+    <div class="provider">
+      <h3>OpenAI</h3>
+      <a href="api/v1/openai.json">api/v1/openai.json</a>
+    </div>
+    <div class="provider">
+      <h3>Anthropic</h3>
+      <a href="api/v1/anthropic.json">api/v1/anthropic.json</a>
+    </div>
+    <div class="provider">
+      <h3>Google</h3>
+      <a href="api/v1/google.json">api/v1/google.json</a>
+    </div>
+    <div class="provider">
+      <h3>OpenRouter</h3>
+      <a href="api/v1/openrouter.json">api/v1/openrouter.json</a>
+    </div>
+  </div>
+
+  <h2>NPM Package <span class="badge">Coming Soon</span></h2>
+  <pre><code>npm install token-prices</code></pre>
+  <pre><code>import { getModelPricing, calculateCost } from 'token-prices';
+
+// Get pricing for a model
+const result = await getModelPricing('openai', 'gpt-4o');
+console.log(result.pricing.input);  // 2.5 ($/M tokens)
+
+// Calculate cost
+const cost = await calculateCost('anthropic', 'claude-sonnet-4', {
+  inputTokens: 1500,
+  outputTokens: 800,
+});
+console.log(cost.totalCost);  // 0.0165</code></pre>
+
+  <h2>Data Format</h2>
+  <pre><code>{
+  "current": {
+    "date": "2026-01-12",
+    "models": {
+      "gpt-4o": {
+        "input": 2.5,
+        "output": 10,
+        "context": 128000
+      }
+    }
+  },
+  "previous": { ... }
+}</code></pre>
+
+  <h2>Features</h2>
+  <ul style="color: var(--muted); margin-left: 1.5rem;">
+    <li>Daily automated price updates</li>
+    <li>Dual-date structure for handling update timing</li>
+    <li>Stale data detection</li>
+    <li>Cached input pricing support (Anthropic)</li>
+    <li>TypeScript types included</li>
+  </ul>
+
+  <h2>Source</h2>
+  <p><a href="https://github.com/anthropics/token-prices">github.com/anthropics/token-prices</a></p>
+</body>
+</html>

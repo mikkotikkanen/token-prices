@@ -10,7 +10,7 @@ import { getCurrentSnapshot } from './utils/storage.js';
 import type { ProviderFile, ProviderData, ModelPricing } from './npm/types.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data', 'prices');
-const OUTPUT_DIR = path.join(process.cwd(), 'data', 'npm');
+const OUTPUT_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
 
 type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
 
