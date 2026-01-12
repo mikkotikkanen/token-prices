@@ -39,6 +39,49 @@ npm run generate:npm   # Generate API files from history
 
 ---
 
+## Branching Workflow
+
+**Every feature/fix should be done in its own branch.** This ensures:
+- Clean git history with clear merge points
+- Ability to revert individual features if needed
+- Easy code review per feature
+- Clear tracking of what each PR introduced
+
+**Branch naming:**
+```
+feat/short-description    # New features
+fix/short-description     # Bug fixes
+docs/short-description    # Documentation changes
+chore/short-description   # Maintenance tasks
+```
+
+**Workflow:**
+```bash
+# 1. Start from latest main
+git fetch origin main
+git checkout -b feat/my-feature origin/main
+
+# 2. Make changes and commit
+git add .
+git commit -m "feat: add my feature"
+
+# 3. Push and create PR
+git push -u origin feat/my-feature
+moi moi/github "Create PR on mikkotikkanen/token-costs from feat/my-feature to main..."
+
+# 4. After PR is merged, clean up
+git checkout main
+git pull
+git branch -d feat/my-feature
+```
+
+**Do NOT:**
+- Push multiple unrelated changes in one branch
+- Continue adding commits to a branch after its PR is merged
+- Reuse old branches for new features
+
+---
+
 ## Commits and Releases
 
 We use **conventional commits** for automatic versioning via semantic-release.
@@ -253,6 +296,30 @@ See TODO comment in `src/crawlers/base.ts`. Plan:
 ### Multimodal Pricing
 
 See `src/npm/types.ts` for `image`, `audio`, `video` fields in `ModelPricing`. Types exist but crawlers don't collect this yet.
+
+---
+
+## Moi Subagents
+
+Use moi CLI for GitHub operations (PRs, issues, etc.) instead of `gh` CLI.
+
+**Getting started:**
+```bash
+moi list                              # Always start here - list available agents
+moi moi/github "<message>"            # Execute GitHub operations
+```
+
+**Examples:**
+```bash
+# Create a PR
+moi moi/github "Create a pull request on mikkotikkanen/token-costs from branch feat/my-feature to main with title 'feat: add feature' and body '## Summary\n- Added feature'"
+
+# Check PR status
+moi moi/github "Get the status of PR #1 on mikkotikkanen/token-costs"
+
+# Merge a PR
+moi moi/github "Merge PR #1 on mikkotikkanen/token-costs"
+```
 
 ---
 
