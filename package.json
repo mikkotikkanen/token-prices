@@ -45,7 +45,12 @@
     "test:local:google": "npm run build && node --experimental-vm-modules dist/test-local.js google",
     "test:local:openrouter": "npm run build && node --experimental-vm-modules dist/test-local.js openrouter",
     "test:local:show": "npm run build && node --experimental-vm-modules dist/test-local.js --show",
-    "generate:npm": "npm run build && node dist/generate-npm-files.js"
+    "generate:npm": "npm run build && node dist/generate-npm-files.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikkotikkanen/token-prices.git"
   },
   "keywords": [
     "llm",

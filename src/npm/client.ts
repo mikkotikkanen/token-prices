@@ -16,7 +16,7 @@ import type {
 // Default URL serves from GitHub Pages when configured, falls back to raw.githubusercontent.com
 // Users can override with their own GitHub Pages URL via baseUrl option
 const DEFAULT_BASE_URL =
-  'https://raw.githubusercontent.com/anthropics/token-prices/main/docs/api/v1';
+  'https://raw.githubusercontent.com/mikkotikkanen/token-prices/main/docs/api/v1';
 
 interface CacheEntry {
   data: ProviderFile;
