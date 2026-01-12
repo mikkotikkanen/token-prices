@@ -5,121 +5,104 @@ import { fetchHtml, withRetry } from '../../utils/http.js';
 
 /**
  * OpenAI price crawler
- * Scrapes prices from OpenAI's pricing page
+ * Scrapes prices from OpenAI's platform pricing page (standard pricing section)
  */
 export class OpenAICrawler extends BaseCrawler {
   readonly provider: Provider = 'openai';
-  readonly pricingUrl = 'https://openai.com/api/pricing/';
+  readonly pricingUrl = 'https://platform.openai.com/docs/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
     try {
       const html = await withRetry(() => fetchHtml(this.pricingUrl));
       return this.parsePricingPage(html);
     } catch (error) {
-      // If fetch fails (e.g., 403 forbidden), fall back to known models
       console.warn(`[openai] Fetch failed: ${error instanceof Error ? error.message : error}`);
       console.warn('[openai] Using fallback known models');
       return this.getKnownModels();
     }
   }
 
-  // Known model patterns to validate parsed results
-  private readonly KNOWN_MODEL_PATTERNS = [
-    /^gpt-[34]/i,
-    /^o[13]-/i,
-    /^o[13]$/i,
-    /^davinci/i,
-    /^babbage/i,
-    /^ada/i,
-    /^curie/i,
-    /^text-/i,
-    /^code-/i,
-  ];
-
-  private isValidModelName(name: string): boolean {
-    const normalized = name.toLowerCase().trim();
-    // Must match a known pattern
-    if (!this.KNOWN_MODEL_PATTERNS.some(p => p.test(normalized))) {
-      return false;
-    }
-    // Must not be too long (garbage text)
-    if (normalized.length > 30) {
-      return false;
-    }
-    // Must not contain certain words that indicate non-model content
-    const invalidWords = ['price', 'pricing', 'fine-tuning', 'training', 'cost', 'tier', 'text'];
-    if (invalidWords.some(w => normalized === w)) {
-      return false;
-    }
-    return true;
-  }
-
   private parsePricingPage(html: string): ModelPricing[] {
-    const $ = cheerio.load(html);
+    // The page has multiple pricing sections (priority, standard, batch, flex)
+    // We want the "standard" section which starts with gpt-5.2 at $1.75 input
+    // Format: <tr><td>MODEL</td><td>$INPUT</td><td>$CACHED</td><td>$OUTPUT</td></tr>
+
+    const rowRegex = /<tr><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><\/tr>/g;
+
+    let match;
+    let inStandardSection = false;
     const models: ModelPricing[] = [];
 
-    // Strategy 1: Look for table rows with model pricing
-    $('table').each((_, table) => {
-      const $table = $(table);
-      $table.find('tr').each((_, row) => {
-        const $row = $(row);
-        const cells = $row.find('td, th').toArray();
-        if (cells.length >= 3) {
-          const modelName = $(cells[0]).text().trim();
-          const inputPrice = $(cells[1]).text().trim();
-          const outputPrice = $(cells[2]).text().trim();
+    while ((match = rowRegex.exec(html)) !== null) {
+      const modelName = match[1].trim();
+      const inputStr = match[2].trim();
+      const cachedStr = match[3].trim();
+      const outputStr = match[4].trim();
 
-          if (modelName && this.isValidModelName(modelName) && !isNaN(parsePrice(inputPrice))) {
-            const model = this.parseModelRow(modelName, inputPrice, outputPrice);
-            if (model) {
-              models.push(model);
-            }
+      // Detect standard section by gpt-5.2 with $1.75 input
+      if (modelName === 'gpt-5.2' && inputStr === '$1.75') {
+        inStandardSection = true;
+      }
+
+      // Detect end of standard section (next section starts with same models but different prices)
+      if (inStandardSection && modelName === 'gpt-5.2' && inputStr !== '$1.75') {
+        break;
+      }
+
+      if (inStandardSection && modelName !== 'Model') {
+        // Filter for text models only (exclude audio, image, realtime)
+        if (this.isTextModel(modelName)) {
+          const inputPrice = parsePrice(inputStr);
+          const outputPrice = parsePrice(outputStr);
+          const cachedPrice = cachedStr === '-' ? undefined : parsePrice(cachedStr);
+
+          if (!isNaN(inputPrice) && !isNaN(outputPrice)) {
+            models.push({
+              modelId: this.normalizeModelId(modelName),
+              modelName: modelName,
+              inputPricePerMillion: inputPrice,
+              outputPricePerMillion: outputPrice,
+              cachedInputPricePerMillion: cachedPrice,
+            });
           }
         }
-      });
-    });
+      }
+    }
 
-    // Validate results - if we got suspicious data, fall back
-    const validModels = models.filter(m => this.isValidModelName(m.modelName));
-
-    if (validModels.length === 0) {
-      console.warn('[openai] Could not parse valid pricing from HTML, using known models');
+    if (models.length === 0) {
+      console.warn('[openai] Could not parse pricing from HTML, using known models');
       return this.getKnownModels();
     }
 
-    // If we got fewer than 3 models, something is probably wrong
-    if (validModels.length < 3) {
-      console.warn(`[openai] Only found ${validModels.length} models, using known models instead`);
+    if (models.length < 5) {
+      console.warn(`[openai] Only found ${models.length} models, using known models instead`);
       return this.getKnownModels();
     }
 
-    return this.deduplicateModels(validModels);
+    return models;
   }
 
-  private parseModelRow(
-    modelName: string,
-    inputPriceStr: string,
-    outputPriceStr: string
-  ): ModelPricing | null {
-    const inputPrice = parsePrice(inputPriceStr);
-    const outputPrice = parsePrice(outputPriceStr);
+  private isTextModel(name: string): boolean {
+    const n = name.toLowerCase();
 
-    if (isNaN(inputPrice) || isNaN(outputPrice)) {
-      return null;
-    }
+    // Include GPT and O-series text models
+    const isText =
+      n.startsWith('gpt-5') ||
+      n.startsWith('gpt-4.1') ||
+      n.startsWith('gpt-4o') ||
+      /^o[134]/.test(n) ||
+      n.startsWith('computer-use');
 
-    // Check if prices are per 1K or 1M tokens
-    const isPerMillion =
-      inputPriceStr.includes('1M') ||
-      inputPriceStr.includes('million') ||
-      inputPriceStr.includes('1,000,000');
+    // Exclude non-text variants
+    const isExcluded = [
+      'audio',
+      'tts',
+      'transcribe',
+      'realtime',
+      'image',
+    ].some(x => n.includes(x));
 
-    return {
-      modelId: this.normalizeModelId(modelName),
-      modelName: modelName,
-      inputPricePerMillion: isPerMillion ? inputPrice : inputPrice * 1000,
-      outputPricePerMillion: isPerMillion ? outputPrice : outputPrice * 1000,
-    };
+    return isText && !isExcluded;
   }
 
   private normalizeModelId(name: string): string {
@@ -129,84 +112,115 @@ export class OpenAICrawler extends BaseCrawler {
       .replace(/[^a-z0-9\-\.]/g, '');
   }
 
-  private deduplicateModels(models: ModelPricing[]): ModelPricing[] {
-    const seen = new Map<string, ModelPricing>();
-    for (const model of models) {
-      if (!seen.has(model.modelId)) {
-        seen.set(model.modelId, model);
-      }
-    }
-    return Array.from(seen.values());
-  }
-
   /**
-   * Known OpenAI models as fallback
-   * These are updated periodically when the crawler runs successfully
+   * Known OpenAI models as fallback (standard pricing)
    */
   private getKnownModels(): ModelPricing[] {
     return [
       {
-        modelId: 'gpt-4o',
-        modelName: 'GPT-4o',
-        inputPricePerMillion: 2.50,
+        modelId: 'gpt-5.2',
+        modelName: 'gpt-5.2',
+        inputPricePerMillion: 1.75,
+        cachedInputPricePerMillion: 0.175,
+        outputPricePerMillion: 14.00,
+      },
+      {
+        modelId: 'gpt-5.1',
+        modelName: 'gpt-5.1',
+        inputPricePerMillion: 1.25,
+        cachedInputPricePerMillion: 0.125,
         outputPricePerMillion: 10.00,
-        contextWindow: 128000,
+      },
+      {
+        modelId: 'gpt-5',
+        modelName: 'gpt-5',
+        inputPricePerMillion: 1.25,
+        cachedInputPricePerMillion: 0.125,
+        outputPricePerMillion: 10.00,
+      },
+      {
+        modelId: 'gpt-5-mini',
+        modelName: 'gpt-5-mini',
+        inputPricePerMillion: 0.25,
+        cachedInputPricePerMillion: 0.025,
+        outputPricePerMillion: 2.00,
+      },
+      {
+        modelId: 'gpt-5-nano',
+        modelName: 'gpt-5-nano',
+        inputPricePerMillion: 0.05,
+        cachedInputPricePerMillion: 0.005,
+        outputPricePerMillion: 0.40,
+      },
+      {
+        modelId: 'gpt-4.1',
+        modelName: 'gpt-4.1',
+        inputPricePerMillion: 2.00,
+        cachedInputPricePerMillion: 0.50,
+        outputPricePerMillion: 8.00,
+      },
+      {
+        modelId: 'gpt-4.1-mini',
+        modelName: 'gpt-4.1-mini',
+        inputPricePerMillion: 0.40,
+        cachedInputPricePerMillion: 0.10,
+        outputPricePerMillion: 1.60,
+      },
+      {
+        modelId: 'gpt-4.1-nano',
+        modelName: 'gpt-4.1-nano',
+        inputPricePerMillion: 0.10,
+        cachedInputPricePerMillion: 0.025,
+        outputPricePerMillion: 0.40,
+      },
+      {
+        modelId: 'gpt-4o',
+        modelName: 'gpt-4o',
+        inputPricePerMillion: 2.50,
+        cachedInputPricePerMillion: 1.25,
+        outputPricePerMillion: 10.00,
       },
       {
         modelId: 'gpt-4o-mini',
-        modelName: 'GPT-4o mini',
+        modelName: 'gpt-4o-mini',
         inputPricePerMillion: 0.15,
+        cachedInputPricePerMillion: 0.075,
         outputPricePerMillion: 0.60,
-        contextWindow: 128000,
-      },
-      {
-        modelId: 'gpt-4-turbo',
-        modelName: 'GPT-4 Turbo',
-        inputPricePerMillion: 10.00,
-        outputPricePerMillion: 30.00,
-        contextWindow: 128000,
-      },
-      {
-        modelId: 'gpt-4',
-        modelName: 'GPT-4',
-        inputPricePerMillion: 30.00,
-        outputPricePerMillion: 60.00,
-        contextWindow: 8192,
-      },
-      {
-        modelId: 'gpt-3.5-turbo',
-        modelName: 'GPT-3.5 Turbo',
-        inputPricePerMillion: 0.50,
-        outputPricePerMillion: 1.50,
-        contextWindow: 16385,
       },
       {
         modelId: 'o1',
         modelName: 'o1',
         inputPricePerMillion: 15.00,
+        cachedInputPricePerMillion: 7.50,
         outputPricePerMillion: 60.00,
-        contextWindow: 200000,
       },
       {
         modelId: 'o1-mini',
         modelName: 'o1-mini',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 12.00,
-        contextWindow: 128000,
+        inputPricePerMillion: 1.10,
+        cachedInputPricePerMillion: 0.55,
+        outputPricePerMillion: 4.40,
       },
       {
-        modelId: 'o1-pro',
-        modelName: 'o1-pro',
-        inputPricePerMillion: 150.00,
-        outputPricePerMillion: 600.00,
-        contextWindow: 200000,
+        modelId: 'o3',
+        modelName: 'o3',
+        inputPricePerMillion: 2.00,
+        cachedInputPricePerMillion: 0.50,
+        outputPricePerMillion: 8.00,
       },
       {
         modelId: 'o3-mini',
         modelName: 'o3-mini',
         inputPricePerMillion: 1.10,
+        cachedInputPricePerMillion: 0.55,
         outputPricePerMillion: 4.40,
-        contextWindow: 200000,
+      },
+      {
+        modelId: 'o4-mini',
+        modelName: 'o4-mini',
+        inputPricePerMillion: 1.10,
+        cachedInputPricePerMillion: 0.275,
+        outputPricePerMillion: 4.40,
       },
     ];
   }
