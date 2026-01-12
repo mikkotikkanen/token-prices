@@ -1,4 +1,4 @@
-# Token Prices
+# Token Costs
 
 Daily-updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.
 
@@ -7,10 +7,10 @@ Daily-updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.
 An npm package and JSON API that gives you up-to-date token pricing for major LLM providers. Stop hardcoding prices or manually checking pricing pages.
 
 ```typescript
-import { PricingClient } from 'token-costs';
+import { CostClient } from 'token-costs';
 
 // Create a client (fetches from remote API)
-const client = new PricingClient();
+const client = new CostClient();
 
 // Get pricing for a model
 const result = await client.getModelPricing('openai', 'gpt-4o');
@@ -54,7 +54,7 @@ Add custom models or use entirely custom pricing data:
 
 ```typescript
 // Add custom models alongside remote data
-const client = new PricingClient({
+const client = new CostClient({
   customProviders: {
     'my-company': {
       'internal-llm': { input: 0.50, output: 1.00 }
@@ -66,7 +66,7 @@ const client = new PricingClient({
 });
 
 // Offline mode - no remote fetching
-const offlineClient = new PricingClient({
+const offlineClient = new CostClient({
   offline: true,
   customProviders: {
     'openai': {
@@ -84,7 +84,7 @@ Full usage guide, API reference, and data formats: **[mikkotikkanen.github.io/to
 
 ```
 token-costs/
-├── PricingClient        # Main client class with caching
+├── CostClient        # Main client class with caching
 └── TypeScript types     # Full type definitions
 ```
 

@@ -1,5 +1,5 @@
 /**
- * Token Prices NPM Module Types
+ * Token Costs NPM Module Types
  */
 
 /**
@@ -74,9 +74,9 @@ export type Provider = BuiltInProvider | (string & {});
 export type CustomProviderModels = Record<string, ModelPricing>;
 
 /**
- * Options for the pricing client
+ * Options for the cost client
  */
-export interface PricingClientOptions {
+export interface CostClientOptions {
   /**
    * When true, disables fetching from remote API.
    * Only customProviders data will be available.
@@ -94,7 +94,7 @@ export interface PricingClientOptions {
    *
    * @example
    * ```ts
-   * new PricingClient({
+   * new CostClient({
    *   customProviders: {
    *     'my-company': {
    *       'internal-llm': { input: 0.50, output: 1.00, context: 32000 }
@@ -125,7 +125,7 @@ export interface PricingClientOptions {
    * Positive values move time forward, negative values move it back.
    * @example
    * // Server clock is 2 hours behind UTC
-   * new PricingClient({ timeOffsetMs: 2 * 60 * 60 * 1000 })
+   * new CostClient({ timeOffsetMs: 2 * 60 * 60 * 1000 })
    */
   timeOffsetMs?: number;
 
@@ -142,7 +142,7 @@ export interface PricingClientOptions {
    * @example
    * // Using a simple file-based cache
    * const cacheFile = './price-cache.json';
-   * new PricingClient({
+   * new CostClient({
    *   externalCache: {
    *     get: async (key) => {
    *       try {

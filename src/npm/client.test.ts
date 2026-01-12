@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { PricingClient, ClockMismatchError } from './client.js';
+import { CostClient, ClockMismatchError } from './client.js';
 import type { ProviderFile } from './types.js';
 
 const DATA_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
@@ -30,8 +30,8 @@ function getUtcDate(offsetMs: number = 0): string {
   return new Date(Date.now() + offsetMs).toISOString().split('T')[0];
 }
 
-describe('PricingClient', () => {
-  let client: PricingClient;
+describe('CostClient', () => {
+  let client: CostClient;
   let openaiData: ProviderFile;
   let anthropicData: ProviderFile;
 
@@ -41,7 +41,7 @@ describe('PricingClient', () => {
     anthropicData = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'anthropic.json'), 'utf-8'));
 
     // Create client with mock fetch pointing to local files
-    client = new PricingClient({
+    client = new CostClient({
       baseUrl: 'file://local',
       fetch: createLocalFetch(DATA_DIR),
       // Use timeOffset to match the data date so stale=false
@@ -237,7 +237,7 @@ describe('PricingClient', () => {
     it('should mark data as stale when client date is ahead of data date', async () => {
       // Create client with time set to 1 day after data date (noon)
       // This gives daysDiff = 1, which passes the >1 check but sets stale=true
-      const staleClient = new PricingClient({
+      const staleClient = new CostClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
         timeOffsetMs: (() => {
@@ -266,7 +266,7 @@ describe('PricingClient', () => {
         return createLocalFetch(DATA_DIR)(url);
       };
 
-      const cachingClient = new PricingClient({
+      const cachingClient = new CostClient({
         baseUrl: 'file://local',
         fetch: countingFetch,
         timeOffsetMs: (() => {
@@ -295,7 +295,7 @@ describe('PricingClient', () => {
 
   describe('ClockMismatchError', () => {
     it('should throw when client clock is way ahead (>1 day)', async () => {
-      const aheadClient = new PricingClient({
+      const aheadClient = new CostClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
         timeOffsetMs: 3 * 24 * 60 * 60 * 1000, // 3 days ahead
@@ -307,7 +307,7 @@ describe('PricingClient', () => {
     });
 
     it('should include useful info in ClockMismatchError', async () => {
-      const aheadClient = new PricingClient({
+      const aheadClient = new CostClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
         timeOffsetMs: 3 * 24 * 60 * 60 * 1000,
@@ -349,7 +349,7 @@ describe('Custom providers and offline mode', () => {
 
   describe('offline mode', () => {
     it('should work with custom providers in offline mode', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
         customProviders: {
           'my-company': {
@@ -365,7 +365,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should throw error for built-in provider in offline mode without custom data', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
       });
 
@@ -375,7 +375,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should allow overriding built-in providers in offline mode', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
         customProviders: {
           openai: {
@@ -392,7 +392,7 @@ describe('Custom providers and offline mode', () => {
 
   describe('custom providers (online mode)', () => {
     it('should merge custom models with remote data', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
         customProviders: {
@@ -417,7 +417,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should allow custom data to override remote data', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         baseUrl: 'file://local',
         fetch: createLocalFetch(DATA_DIR),
         customProviders: {
@@ -437,7 +437,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should support entirely custom providers without remote data', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         customProviders: {
           'my-company': {
             'model-a': { input: 1, output: 2 },
@@ -454,7 +454,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should throw for unknown custom provider model', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         customProviders: {
           'my-company': {
             'model-a': { input: 1, output: 2 },
@@ -468,7 +468,7 @@ describe('Custom providers and offline mode', () => {
     });
 
     it('should throw for unknown provider', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
       });
 
@@ -480,7 +480,7 @@ describe('Custom providers and offline mode', () => {
 
   describe('calculateCost with custom providers', () => {
     it('should calculate cost using custom pricing', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
         customProviders: {
           'my-company': {
@@ -502,7 +502,7 @@ describe('Custom providers and offline mode', () => {
 
   describe('listModels with custom providers', () => {
     it('should list models for custom provider', async () => {
-      const client = new PricingClient({
+      const client = new CostClient({
         offline: true,
         customProviders: {
           'my-company': {
@@ -521,13 +521,13 @@ describe('Custom providers and offline mode', () => {
 });
 
 describe('Price verification against known values', () => {
-  let client: PricingClient;
+  let client: CostClient;
   let openaiData: ProviderFile;
 
   beforeEach(async () => {
     openaiData = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'openai.json'), 'utf-8'));
 
-    client = new PricingClient({
+    client = new CostClient({
       baseUrl: 'file://local',
       fetch: createLocalFetch(DATA_DIR),
       timeOffsetMs: (() => {

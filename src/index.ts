@@ -1,5 +1,5 @@
 /**
- * Token Prices Crawler
+ * Token Costs Crawler
  *
  * A collection of crawlers for tracking LLM pricing across providers.
  */

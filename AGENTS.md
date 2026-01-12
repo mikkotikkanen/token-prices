@@ -31,7 +31,7 @@ npm run generate:npm   # Generate API files from history
 
 **Key files:**
 - `src/crawlers/base.ts` - BaseCrawler class and helper functions
-- `src/npm/client.ts` - PricingClient (npm package)
+- `src/npm/client.ts` - CostClient (npm package)
 - `src/utils/storage.ts` - History read/write functions
 - `src/generate-npm-files.ts` - API file generator
 - `src/types.ts` - Internal types (crawlers)
@@ -100,7 +100,7 @@ token-costs/
 │   │   ├── google/index.ts
 │   │   └── openrouter/index.ts
 │   ├── npm/                   # NPM package (published)
-│   │   ├── client.ts          # PricingClient class
+│   │   ├── client.ts          # CostClient class
 │   │   ├── types.ts           # Public TypeScript types
 │   │   └── index.ts           # Package exports
 │   ├── utils/
@@ -202,7 +202,7 @@ Only `dist/npm/**/*` is published (see `files` in `package.json`)
 ### Client API
 
 See `src/npm/client.ts` for:
-- `PricingClient` class and all methods
+- `CostClient` class and all methods
 - `ClockMismatchError` class
 - Convenience functions (`getModelPricing`, `calculateCost`)
 

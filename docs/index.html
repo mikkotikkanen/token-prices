@@ -821,9 +821,9 @@
         </button>
       </div>
       <div class="code-block">
-        <pre><code><span class="token-keyword">import</span> { PricingClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
+        <pre><code><span class="token-keyword">import</span> { CostClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
 
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>();
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>();
 
 <span class="token-comment">// Get pricing</span>
 <span class="token-keyword">const</span> result = <span class="token-keyword">await</span> client.<span class="token-function">getModelPricing</span>(<span class="token-string">'openai'</span>, <span class="token-string">'gpt-4o'</span>);
@@ -835,9 +835,9 @@ console.<span class="token-function">log</span>(result.pricing.input);  <span cl
   outputTokens: <span class="token-number">800</span>,
 });
 console.<span class="token-function">log</span>(cost.totalCost);  <span class="token-comment">// 0.0165</span></code></pre>
-        <button class="copy-btn" onclick="copyToClipboard(`import { PricingClient } from 'token-costs';
+        <button class="copy-btn" onclick="copyToClipboard(`import { CostClient } from 'token-costs';
 
-const client = new PricingClient();
+const client = new CostClient();
 
 // Get pricing
 const result = await client.getModelPricing('openai', 'gpt-4o');
@@ -884,12 +884,12 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
         </button>
       </div>
 
-      <h3>PricingClient</h3>
+      <h3>CostClient</h3>
       <p>The main class for fetching and caching pricing data:</p>
       <div class="code-block">
-        <pre><code><span class="token-keyword">import</span> { PricingClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
+        <pre><code><span class="token-keyword">import</span> { CostClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
 
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>();
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>();
 
 <span class="token-comment">// Get pricing for a specific model</span>
 <span class="token-keyword">const</span> result = <span class="token-keyword">await</span> client.<span class="token-function">getModelPricing</span>(<span class="token-string">'openai'</span>, <span class="token-string">'gpt-4o'</span>);
@@ -916,7 +916,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
       <p>Add custom models or use entirely custom pricing data:</p>
       <div class="code-block">
         <pre><code><span class="token-comment">// Add custom models alongside remote data</span>
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   customProviders: {
     <span class="token-string">'my-company'</span>: {
       <span class="token-string">'internal-llm'</span>: { input: <span class="token-number">0.50</span>, output: <span class="token-number">1.00</span>, context: <span class="token-number">32000</span> }
@@ -928,7 +928,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
 });
 
 <span class="token-comment">// Offline mode - no remote fetching, only use provided data</span>
-<span class="token-keyword">const</span> offlineClient = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+<span class="token-keyword">const</span> offlineClient = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   offline: <span class="token-keyword">true</span>,
   customProviders: {
     <span class="token-string">'openai'</span>: {
@@ -940,7 +940,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
 
       <h3>Client Options</h3>
       <div class="code-block">
-        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   <span class="token-comment">// Disable remote fetching (only use customProviders)</span>
   offline: <span class="token-keyword">false</span>,
 
@@ -975,7 +975,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
       </ul>
 
       <div class="code-block">
-        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>();
+        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>();
 <span class="token-keyword">const</span> result = <span class="token-keyword">await</span> client.<span class="token-function">getModelPricing</span>(<span class="token-string">'openai'</span>, <span class="token-string">'gpt-4o'</span>);
 
 <span class="token-keyword">if</span> (result.stale) {
@@ -990,7 +990,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
       <h3>Best Practices</h3>
       <p>For most applications, stale data is acceptable - LLM prices rarely change daily. However, if freshness matters:</p>
       <div class="code-block">
-        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>();
+        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>();
 <span class="token-keyword">const</span> result = <span class="token-keyword">await</span> client.<span class="token-function">getModelPricing</span>(<span class="token-string">'openai'</span>, <span class="token-string">'gpt-4o'</span>);
 
 <span class="token-keyword">if</span> (result.stale) {
@@ -1011,9 +1011,9 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
 
       <h3>Error Handling</h3>
       <div class="code-block">
-        <pre><code><span class="token-keyword">import</span> { PricingClient, ClockMismatchError } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
+        <pre><code><span class="token-keyword">import</span> { CostClient, ClockMismatchError } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
 
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>();
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>();
 
 <span class="token-keyword">try</span> {
   <span class="token-keyword">const</span> pricing = <span class="token-keyword">await</span> client.<span class="token-function">getModelPricing</span>(<span class="token-string">'openai'</span>, <span class="token-string">'gpt-4o'</span>);
@@ -1106,12 +1106,12 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
       <h3>Serverless / Edge Functions</h3>
       <p>In serverless environments, use external cache to avoid refetching on every cold start:</p>
       <div class="code-block">
-        <pre><code><span class="token-keyword">import</span> { PricingClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
+        <pre><code><span class="token-keyword">import</span> { CostClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
 <span class="token-keyword">import</span> { Redis } <span class="token-keyword">from</span> <span class="token-string">'@upstash/redis'</span>;
 
 <span class="token-keyword">const</span> redis = <span class="token-keyword">new</span> <span class="token-function">Redis</span>({ url: process.env.REDIS_URL, token: process.env.REDIS_TOKEN });
 
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   externalCache: {
     get: (key) => redis.<span class="token-function">get</span>(key),
     set: (key, value) => redis.<span class="token-function">set</span>(key, value, { ex: <span class="token-number">86400</span> }),
@@ -1122,10 +1122,10 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
       <h3>Custom Fetch</h3>
       <p>For environments without global fetch or to add custom headers:</p>
       <div class="code-block">
-        <pre><code><span class="token-keyword">import</span> { PricingClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
+        <pre><code><span class="token-keyword">import</span> { CostClient } <span class="token-keyword">from</span> <span class="token-string">'token-costs'</span>;
 <span class="token-keyword">import</span> nodeFetch <span class="token-keyword">from</span> <span class="token-string">'node-fetch'</span>;
 
-<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+<span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   fetch: nodeFetch,
 });</code></pre>
       </div>
@@ -1133,7 +1133,7 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
       <h3>Self-Hosting</h3>
       <p>Mirror the JSON files and point the client to your server:</p>
       <div class="code-block">
-        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">PricingClient</span>({
+        <pre><code><span class="token-keyword">const</span> client = <span class="token-keyword">new</span> <span class="token-function">CostClient</span>({
   baseUrl: <span class="token-string">'https://your-cdn.com/token-costs/api/v1'</span>,
 });</code></pre>
       </div>

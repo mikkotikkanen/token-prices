@@ -3,10 +3,10 @@
  *
  * @example
  * ```ts
- * import { PricingClient } from 'token-costs';
+ * import { CostClient } from 'token-costs';
  *
  * // Create a client (fetches from remote API)
- * const client = new PricingClient();
+ * const client = new CostClient();
  *
  * // Get pricing for a model
  * const result = await client.getModelPricing('openai', 'gpt-4o');
@@ -21,7 +21,7 @@
  * console.log(`Total cost: $${cost.totalCost.toFixed(6)}`);
  *
  * // With custom providers
- * const customClient = new PricingClient({
+ * const customClient = new CostClient({
  *   customProviders: {
  *     'my-company': {
  *       'internal-llm': { input: 0.50, output: 1.00 }
@@ -30,7 +30,7 @@
  * });
  *
  * // Offline mode (no remote fetching)
- * const offlineClient = new PricingClient({
+ * const offlineClient = new CostClient({
  *   offline: true,
  *   customProviders: { ... }
  * });
@@ -46,11 +46,11 @@ export type {
   ProviderFile,
   Provider,
   BuiltInProvider,
-  PricingClientOptions,
+  CostClientOptions,
   PriceLookupResult,
   CostResult,
   CustomProviderModels,
 } from './types.js';
 
 // Re-export client
-export { PricingClient, ClockMismatchError } from './client.js';
+export { CostClient, ClockMismatchError } from './client.js';

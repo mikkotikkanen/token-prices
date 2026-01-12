@@ -108,7 +108,7 @@ async function showStoredData() {
 }
 
 async function main() {
-  console.log('Token Prices Crawler - Local Test');
+  console.log('Token Costs Crawler - Local Test');
   console.log('==================================\n');
 
   const args = process.argv.slice(2);

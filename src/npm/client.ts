@@ -1,5 +1,5 @@
 /**
- * Token Prices Client
+ * Token Costs Client
  * Fetches and caches provider pricing data with daily refresh
  */
 
@@ -9,7 +9,7 @@ import type {
   ProviderFile,
   ProviderData,
   ModelPricing,
-  PricingClientOptions,
+  CostClientOptions,
   PriceLookupResult,
   CostResult,
   CustomProviderModels,
@@ -60,15 +60,15 @@ export class ClockMismatchError extends Error {
 }
 
 /**
- * Token Prices Client
+ * Token Costs Client
  *
  * Provides access to LLM pricing data with automatic caching and daily refresh.
  *
  * @example
  * ```ts
- * import { PricingClient } from 'token-costs';
+ * import { CostClient } from 'token-costs';
  *
- * const client = new PricingClient();
+ * const client = new CostClient();
  *
  * // Get pricing for a model
  * const pricing = await client.getModelPricing('openai', 'gpt-4o');
@@ -82,16 +82,16 @@ export class ClockMismatchError extends Error {
  * console.log(cost.totalCost);
  * ```
  */
-export class PricingClient {
+export class CostClient {
   private baseUrl: string;
   private fetchFn: typeof globalThis.fetch;
   private timeOffsetMs: number;
   private cache: Map<Provider, CacheEntry> = new Map();
-  private externalCache?: PricingClientOptions['externalCache'];
+  private externalCache?: CostClientOptions['externalCache'];
   private offline: boolean;
   private customProviders: Record<string, CustomProviderModels>;
 
-  constructor(options: PricingClientOptions = {}) {
+  constructor(options: CostClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     this.fetchFn = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.timeOffsetMs = options.timeOffsetMs ?? 0;
