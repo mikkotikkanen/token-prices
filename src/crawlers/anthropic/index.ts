@@ -12,15 +12,8 @@ export class AnthropicCrawler extends BaseCrawler {
   readonly pricingUrl = 'https://www.anthropic.com/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    try {
-      const html = await withRetry(() => fetchHtml(this.pricingUrl));
-      return this.parsePricingPage(html);
-    } catch (error) {
-      // If fetch fails (e.g., 403 forbidden), fall back to known models
-      console.warn(`[anthropic] Fetch failed: ${error instanceof Error ? error.message : error}`);
-      console.warn('[anthropic] Using fallback known models');
-      return this.getKnownModels();
-    }
+    const html = await withRetry(() => fetchHtml(this.pricingUrl));
+    return this.parsePricingPage(html);
   }
 
   private parsePricingPage(html: string): ModelPricing[] {
@@ -83,10 +76,8 @@ export class AnthropicCrawler extends BaseCrawler {
       }
     });
 
-    // If we couldn't parse from HTML, use known models as fallback
     if (models.length === 0) {
-      console.warn('[anthropic] Could not parse pricing from HTML, using known models');
-      return this.getKnownModels();
+      throw new Error('[anthropic] Could not parse any pricing from HTML');
     }
 
     return this.deduplicateModels(models);
@@ -138,67 +129,6 @@ export class AnthropicCrawler extends BaseCrawler {
       }
     }
     return Array.from(seen.values());
-  }
-
-  /**
-   * Known Anthropic models as fallback
-   */
-  private getKnownModels(): ModelPricing[] {
-    return [
-      {
-        modelId: 'claude-opus-4',
-        modelName: 'Claude Opus 4',
-        inputPricePerMillion: 15.00,
-        outputPricePerMillion: 75.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-sonnet-4',
-        modelName: 'Claude Sonnet 4',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-3.5-sonnet',
-        modelName: 'Claude 3.5 Sonnet',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.30,
-      },
-      {
-        modelId: 'claude-3.5-haiku',
-        modelName: 'Claude 3.5 Haiku',
-        inputPricePerMillion: 0.80,
-        outputPricePerMillion: 4.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.08,
-      },
-      {
-        modelId: 'claude-3-opus',
-        modelName: 'Claude 3 Opus',
-        inputPricePerMillion: 15.00,
-        outputPricePerMillion: 75.00,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 1.50,
-      },
-      {
-        modelId: 'claude-3-sonnet',
-        modelName: 'Claude 3 Sonnet',
-        inputPricePerMillion: 3.00,
-        outputPricePerMillion: 15.00,
-        contextWindow: 200000,
-      },
-      {
-        modelId: 'claude-3-haiku',
-        modelName: 'Claude 3 Haiku',
-        inputPricePerMillion: 0.25,
-        outputPricePerMillion: 1.25,
-        contextWindow: 200000,
-        cachedInputPricePerMillion: 0.03,
-      },
-    ];
   }
 }
 

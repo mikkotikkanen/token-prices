@@ -78,7 +78,7 @@ describe('AnthropicCrawler', () => {
       expect(prices.length).toBeGreaterThan(0);
     });
 
-    it('should fall back to known models when HTML parsing fails', async () => {
+    it('should throw error when HTML parsing fails', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
@@ -88,21 +88,14 @@ describe('AnthropicCrawler', () => {
         </html>
       `);
 
-      const prices = await crawler.crawlPrices();
-
-      // Should return known models as fallback
-      expect(prices.length).toBeGreaterThan(0);
-      expect(prices.some(p => p.modelId.includes('opus') || p.modelId.includes('sonnet'))).toBe(true);
+      await expect(crawler.crawlPrices()).rejects.toThrow('[anthropic] Could not parse any pricing from HTML');
     });
 
-    it('should fall back to known models on fetch error', async () => {
+    it('should throw error on fetch error', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       (fetchHtml as any).mockRejectedValueOnce(new Error('403 Forbidden'));
 
-      const prices = await crawler.crawlPrices();
-
-      // Should return known models as fallback
-      expect(prices.length).toBeGreaterThan(0);
+      await expect(crawler.crawlPrices()).rejects.toThrow('403 Forbidden');
     });
 
     it('should deduplicate models', async () => {
@@ -172,49 +165,6 @@ describe('AnthropicCrawler', () => {
       const sonnet = prices.find(p => p.modelId.includes('sonnet'));
       expect(sonnet?.inputPricePerMillion).toBe(3);
       expect(sonnet?.outputPricePerMillion).toBe(15);
-    });
-  });
-
-  describe('known models fallback', () => {
-    it('should include expected Claude models', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      // Check for various Claude model generations
-      const hasOpus = prices.some(p => p.modelId.includes('opus'));
-      const hasSonnet = prices.some(p => p.modelId.includes('sonnet'));
-      const hasHaiku = prices.some(p => p.modelId.includes('haiku'));
-
-      expect(hasOpus).toBe(true);
-      expect(hasSonnet).toBe(true);
-      expect(hasHaiku).toBe(true);
-    });
-
-    it('should have valid pricing data in fallback', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      for (const model of prices) {
-        expect(model.inputPricePerMillion).toBeGreaterThanOrEqual(0);
-        expect(model.outputPricePerMillion).toBeGreaterThanOrEqual(0);
-        expect(model.modelId).toBeTruthy();
-        expect(model.modelName).toBeTruthy();
-      }
-    });
-
-    it('should include cached pricing where applicable', async () => {
-      const { fetchHtml } = await import('../../utils/http.js');
-      (fetchHtml as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const prices = await crawler.crawlPrices();
-
-      // Some Claude models support cached input pricing
-      const modelsWithCached = prices.filter(p => p.cachedInputPricePerMillion !== undefined);
-      expect(modelsWithCached.length).toBeGreaterThan(0);
     });
   });
 });

@@ -289,6 +289,10 @@ export class OpenRouterCrawler extends BaseCrawler {
       `[openrouter] Found ${allModels.length} total models, selected ${selectedModels.length} by popularity`
     );
 
+    if (selectedModels.length === 0) {
+      throw new Error('[openrouter] Could not select any models from API response');
+    }
+
     return selectedModels;
   }
 }
@@ -329,6 +333,10 @@ export class OpenRouterBatchCrawler extends BaseCrawler {
       `[openrouter] Batch ${this.batchIndex + 1}/${this.totalBatches}: ` +
         `Processing models ${startIndex + 1}-${endIndex} of ${allModels.length}`
     );
+
+    if (batchModels.length === 0) {
+      throw new Error(`[openrouter] No models in batch ${this.batchIndex + 1}/${this.totalBatches}`);
+    }
 
     return batchModels;
   }

@@ -11,14 +11,8 @@ export class GoogleCrawler extends BaseCrawler {
   readonly pricingUrl = 'https://ai.google.dev/gemini-api/docs/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    try {
-      const html = await withRetry(() => fetchHtml(this.pricingUrl));
-      return this.parsePricingPage(html);
-    } catch (error) {
-      console.warn(`[google] Fetch failed: ${error instanceof Error ? error.message : error}`);
-      console.warn('[google] Using fallback known models');
-      return this.getKnownModels();
-    }
+    const html = await withRetry(() => fetchHtml(this.pricingUrl));
+    return this.parsePricingPage(html);
   }
 
   private parsePricingPage(html: string): ModelPricing[] {
@@ -75,13 +69,11 @@ export class GoogleCrawler extends BaseCrawler {
     }
 
     if (models.length === 0) {
-      console.warn('[google] Could not parse pricing from HTML, using known models');
-      return this.getKnownModels();
+      throw new Error('[google] Could not parse any pricing from HTML');
     }
 
     if (models.length < 3) {
-      console.warn(`[google] Only found ${models.length} models, using known models instead`);
-      return this.getKnownModels();
+      throw new Error(`[google] Only found ${models.length} models, expected at least 3`);
     }
 
     return models;
@@ -92,62 +84,6 @@ export class GoogleCrawler extends BaseCrawler {
     // Exclude TTS, embedding, robotics, image-only models
     const isExcluded = ['tts', 'embedding', 'robotics', 'image-preview'].some(x => n.includes(x));
     return !isExcluded;
-  }
-
-  /**
-   * Known Google Gemini models as fallback
-   */
-  private getKnownModels(): ModelPricing[] {
-    return [
-      {
-        modelId: 'gemini-3-pro-preview',
-        modelName: 'gemini-3-pro-preview',
-        inputPricePerMillion: 2.00,
-        outputPricePerMillion: 12.00,
-        cachedInputPricePerMillion: 0.20,
-      },
-      {
-        modelId: 'gemini-3-flash-preview',
-        modelName: 'gemini-3-flash-preview',
-        inputPricePerMillion: 0.50,
-        outputPricePerMillion: 3.00,
-        cachedInputPricePerMillion: 0.05,
-      },
-      {
-        modelId: 'gemini-2.5-pro',
-        modelName: 'gemini-2.5-pro',
-        inputPricePerMillion: 1.25,
-        outputPricePerMillion: 10.00,
-        cachedInputPricePerMillion: 0.125,
-      },
-      {
-        modelId: 'gemini-2.5-flash',
-        modelName: 'gemini-2.5-flash',
-        inputPricePerMillion: 0.30,
-        outputPricePerMillion: 2.50,
-        cachedInputPricePerMillion: 0.03,
-      },
-      {
-        modelId: 'gemini-2.5-flash-lite',
-        modelName: 'gemini-2.5-flash-lite',
-        inputPricePerMillion: 0.10,
-        outputPricePerMillion: 0.40,
-        cachedInputPricePerMillion: 0.01,
-      },
-      {
-        modelId: 'gemini-2.0-flash',
-        modelName: 'gemini-2.0-flash',
-        inputPricePerMillion: 0.10,
-        outputPricePerMillion: 0.40,
-        cachedInputPricePerMillion: 0.025,
-      },
-      {
-        modelId: 'gemini-2.0-flash-lite',
-        modelName: 'gemini-2.0-flash-lite',
-        inputPricePerMillion: 0.075,
-        outputPricePerMillion: 0.30,
-      },
-    ];
   }
 }
 

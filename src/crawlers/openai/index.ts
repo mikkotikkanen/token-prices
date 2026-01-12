@@ -12,14 +12,8 @@ export class OpenAICrawler extends BaseCrawler {
   readonly pricingUrl = 'https://platform.openai.com/docs/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    try {
-      const html = await withRetry(() => fetchHtml(this.pricingUrl));
-      return this.parsePricingPage(html);
-    } catch (error) {
-      console.warn(`[openai] Fetch failed: ${error instanceof Error ? error.message : error}`);
-      console.warn('[openai] Using fallback known models');
-      return this.getKnownModels();
-    }
+    const html = await withRetry(() => fetchHtml(this.pricingUrl));
+    return this.parsePricingPage(html);
   }
 
   private parsePricingPage(html: string): ModelPricing[] {
@@ -70,13 +64,11 @@ export class OpenAICrawler extends BaseCrawler {
     }
 
     if (models.length === 0) {
-      console.warn('[openai] Could not parse pricing from HTML, using known models');
-      return this.getKnownModels();
+      throw new Error('[openai] Could not parse any pricing from HTML');
     }
 
     if (models.length < 5) {
-      console.warn(`[openai] Only found ${models.length} models, using known models instead`);
-      return this.getKnownModels();
+      throw new Error(`[openai] Only found ${models.length} models, expected at least 5`);
     }
 
     return models;
@@ -110,119 +102,6 @@ export class OpenAICrawler extends BaseCrawler {
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-\.]/g, '');
-  }
-
-  /**
-   * Known OpenAI models as fallback (standard pricing)
-   */
-  private getKnownModels(): ModelPricing[] {
-    return [
-      {
-        modelId: 'gpt-5.2',
-        modelName: 'gpt-5.2',
-        inputPricePerMillion: 1.75,
-        cachedInputPricePerMillion: 0.175,
-        outputPricePerMillion: 14.00,
-      },
-      {
-        modelId: 'gpt-5.1',
-        modelName: 'gpt-5.1',
-        inputPricePerMillion: 1.25,
-        cachedInputPricePerMillion: 0.125,
-        outputPricePerMillion: 10.00,
-      },
-      {
-        modelId: 'gpt-5',
-        modelName: 'gpt-5',
-        inputPricePerMillion: 1.25,
-        cachedInputPricePerMillion: 0.125,
-        outputPricePerMillion: 10.00,
-      },
-      {
-        modelId: 'gpt-5-mini',
-        modelName: 'gpt-5-mini',
-        inputPricePerMillion: 0.25,
-        cachedInputPricePerMillion: 0.025,
-        outputPricePerMillion: 2.00,
-      },
-      {
-        modelId: 'gpt-5-nano',
-        modelName: 'gpt-5-nano',
-        inputPricePerMillion: 0.05,
-        cachedInputPricePerMillion: 0.005,
-        outputPricePerMillion: 0.40,
-      },
-      {
-        modelId: 'gpt-4.1',
-        modelName: 'gpt-4.1',
-        inputPricePerMillion: 2.00,
-        cachedInputPricePerMillion: 0.50,
-        outputPricePerMillion: 8.00,
-      },
-      {
-        modelId: 'gpt-4.1-mini',
-        modelName: 'gpt-4.1-mini',
-        inputPricePerMillion: 0.40,
-        cachedInputPricePerMillion: 0.10,
-        outputPricePerMillion: 1.60,
-      },
-      {
-        modelId: 'gpt-4.1-nano',
-        modelName: 'gpt-4.1-nano',
-        inputPricePerMillion: 0.10,
-        cachedInputPricePerMillion: 0.025,
-        outputPricePerMillion: 0.40,
-      },
-      {
-        modelId: 'gpt-4o',
-        modelName: 'gpt-4o',
-        inputPricePerMillion: 2.50,
-        cachedInputPricePerMillion: 1.25,
-        outputPricePerMillion: 10.00,
-      },
-      {
-        modelId: 'gpt-4o-mini',
-        modelName: 'gpt-4o-mini',
-        inputPricePerMillion: 0.15,
-        cachedInputPricePerMillion: 0.075,
-        outputPricePerMillion: 0.60,
-      },
-      {
-        modelId: 'o1',
-        modelName: 'o1',
-        inputPricePerMillion: 15.00,
-        cachedInputPricePerMillion: 7.50,
-        outputPricePerMillion: 60.00,
-      },
-      {
-        modelId: 'o1-mini',
-        modelName: 'o1-mini',
-        inputPricePerMillion: 1.10,
-        cachedInputPricePerMillion: 0.55,
-        outputPricePerMillion: 4.40,
-      },
-      {
-        modelId: 'o3',
-        modelName: 'o3',
-        inputPricePerMillion: 2.00,
-        cachedInputPricePerMillion: 0.50,
-        outputPricePerMillion: 8.00,
-      },
-      {
-        modelId: 'o3-mini',
-        modelName: 'o3-mini',
-        inputPricePerMillion: 1.10,
-        cachedInputPricePerMillion: 0.55,
-        outputPricePerMillion: 4.40,
-      },
-      {
-        modelId: 'o4-mini',
-        modelName: 'o4-mini',
-        inputPricePerMillion: 1.10,
-        cachedInputPricePerMillion: 0.275,
-        outputPricePerMillion: 4.40,
-      },
-    ];
   }
 }
 
