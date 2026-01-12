@@ -142,11 +142,34 @@
       background: var(--bg-subtle);
     }
 
+    /* Container */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        padding: 0 2rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .container {
+        padding: 0 3rem;
+      }
+    }
+
     /* Hero */
     .hero {
-      padding: 5rem 1.5rem 4rem;
+      padding: 5rem 0 4rem;
       text-align: center;
       border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero .container {
+      max-width: 700px;
     }
 
     .hero-badge {
@@ -303,9 +326,21 @@
 
     /* Main content */
     main {
-      max-width: 800px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 0 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      main {
+        padding: 0 2rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      main {
+        padding: 0 3rem;
+      }
     }
 
     section {
@@ -636,15 +671,11 @@
       }
 
       .hero {
-        padding: 6rem 2rem 5rem;
+        padding: 6rem 0 5rem;
       }
 
       .hero-actions {
         flex-direction: row;
-      }
-
-      main {
-        padding: 0 2rem;
       }
 
       .api-grid {
@@ -654,10 +685,6 @@
 
     @media (min-width: 1024px) {
       .header-inner {
-        padding: 0 3rem;
-      }
-
-      main {
         padding: 0 3rem;
       }
     }
@@ -709,22 +736,24 @@
   </div>
 
   <section class="hero">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      Updated daily at 00:01 UTC
-    </div>
-    <h1>LLM <span>Pricing</span> Data</h1>
-    <p class="hero-description">Daily-updated token pricing for OpenAI, Anthropic, Google, and OpenRouter. Stop hardcoding prices.</p>
-    <div class="hero-actions">
-      <div class="hero-install">
-        <code><span>npm</span> install token-costs</code>
-        <button class="copy-btn" onclick="copyToClipboard('npm install token-costs', this)" aria-label="Copy">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        </button>
+    <div class="container">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Updated daily at 00:01 UTC
       </div>
-      <div class="hero-links">
-        <a href="#api-endpoints">JSON API</a>
-        <a href="https://github.com/mikkotikkanen/token-costs">GitHub</a>
+      <h1>LLM <span>Pricing</span> Data</h1>
+      <p class="hero-description">Daily-updated token pricing for OpenAI, Anthropic, Google, and OpenRouter. Stop hardcoding prices.</p>
+      <div class="hero-actions">
+        <div class="hero-install">
+          <code><span>npm</span> install token-costs</code>
+          <button class="copy-btn" onclick="copyToClipboard('npm install token-costs', this)" aria-label="Copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+        <div class="hero-links">
+          <a href="#api-endpoints">JSON API</a>
+          <a href="https://github.com/mikkotikkanen/token-costs">GitHub</a>
+        </div>
       </div>
     </div>
   </section>
