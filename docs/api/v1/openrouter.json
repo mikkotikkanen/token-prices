@@ -123,5 +123,11 @@
         "maxOutput": 128000
       }
     }
+  },
+  "deprecated": {
+    "since": "2026-01-14",
+    "dataFrozenAt": "2026-02-14",
+    "message": "This endpoint is deprecated. Use per-provider endpoints instead (e.g., openrouter/openai.json, openrouter/anthropic.json).",
+    "upgradeGuide": "https://github.com/mikkotikkanen/token-costs#openrouter-migration"
   }
 }

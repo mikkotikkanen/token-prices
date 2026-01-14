@@ -16,25 +16,29 @@ describe('GoogleCrawler', () => {
   });
 
   describe('crawlPrices', () => {
-    it('should parse prices from h2 sections with pricing tables', async () => {
+    it('should parse prices from code elements with pricing tables', async () => {
       const { fetchHtml } = await import('../../utils/http.js');
       // Simulate the actual Google AI pricing page format
+      // The crawler looks for <code>gemini-*</code> elements then finds pricing tables
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <h2>Gemini 2.5 Pro</h2>
+            <code>gemini-2.5-pro</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
               <tr><td>Context caching price</td><td>Free</td><td>$0.125</td></tr>
             </table>
-            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <h2>Gemini 2.5 Flash</h2>
+            <code>gemini-2.5-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
               <tr><td>Context caching price</td><td>Free</td><td>$0.03</td></tr>
             </table>
-            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <h2>Gemini 2.0 Flash</h2>
+            <code>gemini-2.0-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
@@ -60,19 +64,22 @@ describe('GoogleCrawler', () => {
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <h2>Gemini 2.5 Pro</h2>
+            <code>gemini-2.5-pro</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
               <tr><td>Context caching price</td><td>Free</td><td>$0.125</td></tr>
             </table>
-            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <h2>Gemini 2.5 Flash</h2>
+            <code>gemini-2.5-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
               <tr><td>Context caching price</td><td>Free</td><td>$0.03</td></tr>
             </table>
-            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <h2>Gemini 2.0 Flash</h2>
+            <code>gemini-2.0-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
@@ -93,27 +100,32 @@ describe('GoogleCrawler', () => {
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <h2>Gemini 2.5 Pro</h2>
+            <code>gemini-2.5-pro</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>
             </table>
-            <h2 id="gemini-2.5-flash">Gemini 2.5 Flash</h2>
+            <h2>Gemini 2.5 Flash</h2>
+            <code>gemini-2.5-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.30</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$2.50</td></tr>
             </table>
-            <h2 id="gemini-2.0-flash">Gemini 2.0 Flash</h2>
+            <h2>Gemini 2.0 Flash</h2>
+            <code>gemini-2.0-flash</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$0.40</td></tr>
             </table>
-            <h2 id="gemini-tts-model">Gemini TTS</h2>
+            <h2>Gemini TTS</h2>
+            <code>gemini-tts-model</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.50</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$1.00</td></tr>
             </table>
-            <h2 id="gemini-embedding-model">Gemini Embedding</h2>
+            <h2>Gemini Embedding</h2>
+            <code>gemini-embedding-model</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$0.10</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$0.10</td></tr>
@@ -154,7 +166,8 @@ describe('GoogleCrawler', () => {
       (fetchHtml as any).mockResolvedValueOnce(`
         <html>
           <body>
-            <h2 id="gemini-2.5-pro">Gemini 2.5 Pro</h2>
+            <h2>Gemini 2.5 Pro</h2>
+            <code>gemini-2.5-pro</code>
             <table>
               <tr><td>Input price</td><td>Free</td><td>$1.25</td></tr>
               <tr><td>Output price</td><td>Free</td><td>$10.00</td></tr>

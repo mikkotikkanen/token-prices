@@ -1,107 +1,227 @@
-import * as cheerio from 'cheerio';
+import { chromium } from 'playwright';
 import { BaseCrawler, parsePrice } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
-import { fetchHtml, withRetry } from '../../utils/http.js';
 
 /**
  * OpenAI price crawler
- * Scrapes prices from OpenAI's platform pricing page (standard pricing section)
+ * Uses Playwright to scrape prices from OpenAI's platform pricing page
  */
 export class OpenAICrawler extends BaseCrawler {
   readonly provider: Provider = 'openai';
   readonly pricingUrl = 'https://platform.openai.com/docs/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    const html = await withRetry(() => fetchHtml(this.pricingUrl));
-    return this.parsePricingPage(html);
-  }
+    const browser = await chromium.launch({
+      headless: true,
+      args: ['--disable-blink-features=AutomationControlled'],
+    });
 
-  private parsePricingPage(html: string): ModelPricing[] {
-    // The page has multiple pricing sections (priority, standard, batch, flex)
-    // We want the "standard" section which starts with gpt-5.2 at $1.75 input
-    // Format: <tr><td>MODEL</td><td>$INPUT</td><td>$CACHED</td><td>$OUTPUT</td></tr>
+    try {
+      const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      });
+      const page = await context.newPage();
+      await page.goto(this.pricingUrl, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
 
-    const rowRegex = /<tr><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><td[^>]*>([^<]+)<\/td><\/tr>/g;
+      // Wait for the pricing table to load (may need extra time due to JS)
+      // Use waitForFunction to wait for table to exist in DOM (not just visible)
+      await page.waitForFunction(() => document.querySelectorAll('table').length > 0, { timeout: 30000 });
+      // Extra wait for JS to finish rendering
+      await page.waitForTimeout(2000);
 
-    let match;
-    let inStandardSection = false;
-    const models: ModelPricing[] = [];
+      // Extract pricing data from the "Text tokens" section
+      // Strategy: Find the first table with columns Model|Input|Cached input|Output
+      const models = await page.evaluate(() => {
+        const results: {
+          modelId: string;
+          modelName: string;
+          input: number;
+          output: number;
+          cached?: number;
+        }[] = [];
 
-    while ((match = rowRegex.exec(html)) !== null) {
-      const modelName = match[1].trim();
-      const inputStr = match[2].trim();
-      const cachedStr = match[3].trim();
-      const outputStr = match[4].trim();
+        // Helper to parse price string like "$1.75" or "$0.175" to number
+        const parsePrice = (str: string): number => {
+          const match = str.match(/\$([0-9.]+)/);
+          return match ? parseFloat(match[1]) : NaN;
+        };
 
-      // Detect standard section by gpt-5.2 with $1.75 input
-      if (modelName === 'gpt-5.2' && inputStr === '$1.75') {
-        inStandardSection = true;
-      }
+        // Find all tables and look for one with the right header structure
+        const tables = Array.from(document.querySelectorAll('table'));
 
-      // Detect end of standard section (next section starts with same models but different prices)
-      if (inStandardSection && modelName === 'gpt-5.2' && inputStr !== '$1.75') {
-        break;
-      }
+        for (const table of tables) {
+          const headerRow = table.querySelector('thead tr, tr');
+          if (!headerRow) continue;
 
-      if (inStandardSection && modelName !== 'Model') {
-        // Filter for text models only (exclude audio, image, realtime)
-        if (this.isTextModel(modelName)) {
-          const inputPrice = parsePrice(inputStr);
-          const outputPrice = parsePrice(outputStr);
-          const cachedPrice = cachedStr === '-' ? undefined : parsePrice(cachedStr);
+          const headers = Array.from(headerRow.querySelectorAll('th, td'))
+            .map(h => h.textContent?.toLowerCase().trim() || '');
 
-          if (!isNaN(inputPrice) && !isNaN(outputPrice)) {
-            models.push({
-              modelId: this.normalizeModelId(modelName),
-              modelName: modelName,
-              inputPricePerMillion: inputPrice,
-              outputPricePerMillion: outputPrice,
-              cachedInputPricePerMillion: cachedPrice,
-            });
+          // Look for text token table: Model | Input | Cached input | Output
+          const hasModel = headers.some(h => h.includes('model'));
+          const hasInput = headers.some(h => h === 'input');
+          const hasCached = headers.some(h => h.includes('cached'));
+          const hasOutput = headers.some(h => h === 'output');
+
+          if (!hasModel || !hasInput || !hasOutput) continue;
+
+          // Parse all rows from this table
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          for (const row of rows) {
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 3) continue;
+
+            const modelName = cells[0].textContent?.trim() || '';
+            const inputStr = cells[1].textContent?.trim() || '';
+            // Cached column may or may not exist
+            const cachedStr = hasCached && cells.length >= 4 ? cells[2].textContent?.trim() || '' : '';
+            const outputStr = hasCached && cells.length >= 4 ? cells[3].textContent?.trim() || '' : cells[2].textContent?.trim() || '';
+
+            const inputPrice = parsePrice(inputStr);
+            const outputPrice = parsePrice(outputStr);
+            const cachedPrice = cachedStr === '-' || !cachedStr ? undefined : parsePrice(cachedStr);
+
+            if (!isNaN(inputPrice) && !isNaN(outputPrice) && modelName) {
+              results.push({
+                modelId: modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-\.]/g, ''),
+                modelName: modelName,
+                input: inputPrice,
+                output: outputPrice,
+                cached: cachedPrice,
+              });
+            }
+          }
+
+          // Only process the first matching table (Text tokens)
+          // to avoid including image/audio models
+          if (results.length > 0) break;
+        }
+
+        return results;
+      });
+
+      // Also get legacy models
+      const legacyModels = await page.evaluate(() => {
+        const results: {
+          modelId: string;
+          modelName: string;
+          input: number;
+          output: number;
+        }[] = [];
+
+        const parsePrice = (str: string): number => {
+          const match = str.match(/\$([0-9.]+)/);
+          return match ? parseFloat(match[1]) : NaN;
+        };
+
+        const headings = Array.from(document.querySelectorAll('h3'));
+        const legacyHeading = headings.find(h =>
+          h.textContent?.toLowerCase().includes('legacy models')
+        );
+
+        if (!legacyHeading) return results;
+
+        let element: Element | null = legacyHeading;
+        let table: HTMLTableElement | null = null;
+
+        while (element && !table) {
+          element = element.nextElementSibling;
+          if (element?.tagName === 'TABLE') {
+            table = element as HTMLTableElement;
+          } else if (element) {
+            table = element.querySelector('table');
           }
         }
+
+        if (!table) return results;
+
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        for (const row of rows) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 3) {
+            const modelName = cells[0].textContent?.trim() || '';
+            const inputStr = cells[1].textContent?.trim() || '';
+            const outputStr = cells[2].textContent?.trim() || '';
+
+            const inputPrice = parsePrice(inputStr);
+            const outputPrice = parsePrice(outputStr);
+
+            if (!isNaN(inputPrice) && !isNaN(outputPrice) && modelName) {
+              results.push({
+                modelId: modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-\.]/g, ''),
+                modelName: modelName,
+                input: inputPrice,
+                output: outputPrice,
+              });
+            }
+          }
+        }
+
+        return results;
+      });
+
+      // Combine and convert to ModelPricing format
+      const allModels: ModelPricing[] = [];
+      const seenIds = new Set<string>();
+
+      for (const m of models) {
+        if (!seenIds.has(m.modelId) && this.isTextModel(m.modelName)) {
+          seenIds.add(m.modelId);
+          allModels.push({
+            modelId: m.modelId,
+            modelName: m.modelName,
+            inputPricePerMillion: m.input,
+            outputPricePerMillion: m.output,
+            cachedInputPricePerMillion: m.cached,
+          });
+        }
       }
-    }
 
-    if (models.length === 0) {
-      throw new Error('[openai] Could not parse any pricing from HTML');
-    }
+      for (const m of legacyModels) {
+        if (!seenIds.has(m.modelId) && this.isTextModel(m.modelName)) {
+          seenIds.add(m.modelId);
+          allModels.push({
+            modelId: m.modelId,
+            modelName: m.modelName,
+            inputPricePerMillion: m.input,
+            outputPricePerMillion: m.output,
+          });
+        }
+      }
 
-    if (models.length < 5) {
-      throw new Error(`[openai] Only found ${models.length} models, expected at least 5`);
-    }
+      console.log(`[openai] Found ${allModels.length} text models`);
 
-    return models;
+      if (allModels.length === 0) {
+        throw new Error('[openai] Could not parse any pricing from page');
+      }
+
+      if (allModels.length < 5) {
+        throw new Error(`[openai] Only found ${allModels.length} models, expected at least 5`);
+      }
+
+      return allModels;
+    } finally {
+      await browser.close();
+    }
   }
 
   private isTextModel(name: string): boolean {
     const n = name.toLowerCase();
-
-    // Include GPT and O-series text models
-    const isText =
-      n.startsWith('gpt-5') ||
-      n.startsWith('gpt-4.1') ||
-      n.startsWith('gpt-4o') ||
-      /^o[134]/.test(n) ||
-      n.startsWith('computer-use');
-
-    // Exclude non-text variants
+    // Exclude non-text models
     const isExcluded = [
       'audio',
       'tts',
       'transcribe',
       'realtime',
       'image',
+      'dall',
+      'whisper',
+      'embedding',
+      'sora',
     ].some(x => n.includes(x));
-
-    return isText && !isExcluded;
-  }
-
-  private normalizeModelId(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-\.]/g, '');
+    return !isExcluded;
   }
 }
 

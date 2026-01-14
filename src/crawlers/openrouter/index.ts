@@ -1,7 +1,6 @@
-import { chromium, Browser, Page } from 'playwright';
 import { BaseCrawler } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
-import { fetchJson, withRetry, sleep } from '../../utils/http.js';
+import { fetchJson, withRetry } from '../../utils/http.js';
 
 /**
  * OpenRouter API model response
@@ -31,9 +30,10 @@ interface OpenRouterModelsResponse {
 }
 
 /**
- * Provider slugs to scrape for popularity data
+ * Provider slugs to include models from.
+ * All models from these providers will be crawled (no popularity filtering).
  */
-const PROVIDERS_TO_SCRAPE = [
+const PROVIDERS_TO_INCLUDE = [
   'openai',
   'anthropic',
   'google',
@@ -47,119 +47,9 @@ const PROVIDERS_TO_SCRAPE = [
 ];
 
 /**
- * Maximum models per provider (hard cap)
- */
-const MAX_MODELS_PER_PROVIDER = 5;
-
-/**
- * Minimum usage threshold relative to provider's top model.
- * Models must have at least this percentage of the top model's usage to be included.
- * E.g., 0.1 means a model needs 10% of the top model's tokens to qualify.
- */
-const MIN_RELATIVE_USAGE = 0.1;
-
-/**
- * Maximum total models to include
- */
-const MAX_MODELS = 20;
-
-/**
- * Scrape a provider page to get model usage stats
- */
-async function scrapeProviderPopularity(
-  browser: Browser,
-  providerSlug: string
-): Promise<Map<string, number>> {
-  const page = await browser.newPage();
-  const popularity = new Map<string, number>();
-
-  try {
-    console.log(`[openrouter] Scraping popularity for ${providerSlug}...`);
-    await page.goto(`https://openrouter.ai/${providerSlug}`, {
-      waitUntil: 'networkidle',
-      timeout: 30000,
-    });
-    await page.waitForTimeout(2000);
-
-    const models = await page.evaluate((provider) => {
-      const results: { modelId: string; tokens: number }[] = [];
-      const bodyText = (document.body as HTMLElement).innerText;
-      const lines = bodyText.split('\n').map((l: string) => l.trim()).filter((l: string) => l);
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        // Match usage pattern like "4.58B tokens", "22.9M tokens"
-        const usageMatch = line.match(/^([\d.]+)([BMK])\s*tokens$/i);
-
-        if (usageMatch) {
-          const modelName = lines[i - 1];
-          if (modelName && modelName.includes(':')) {
-            let tokens = parseFloat(usageMatch[1]);
-            const suffix = usageMatch[2].toUpperCase();
-
-            if (suffix === 'B') tokens *= 1_000_000_000;
-            else if (suffix === 'M') tokens *= 1_000_000;
-            else if (suffix === 'K') tokens *= 1_000;
-
-            // Find the model ID from links
-            const links = Array.from(document.querySelectorAll(`a[href^="/${provider}/"]`)) as HTMLAnchorElement[];
-            const searchText = modelName.split(':')[1]?.trim();
-            const link = links.find((l: HTMLAnchorElement) => searchText && l.textContent?.includes(searchText));
-            const href = link?.getAttribute('href');
-            const modelId = href ? href.slice(1) : null;
-
-            if (modelId) {
-              results.push({ modelId, tokens });
-            }
-          }
-        }
-      }
-      return results;
-    }, providerSlug);
-
-    // Dedupe and add to map
-    const seen = new Set<string>();
-    for (const m of models) {
-      if (!seen.has(m.modelId)) {
-        seen.add(m.modelId);
-        popularity.set(m.modelId, m.tokens);
-      }
-    }
-  } catch (error) {
-    console.error(`[openrouter] Failed to scrape ${providerSlug}:`, error);
-  } finally {
-    await page.close();
-  }
-
-  return popularity;
-}
-
-/**
- * Scrape all provider pages for popularity data
- */
-async function scrapeAllPopularity(): Promise<Map<string, number>> {
-  const allPopularity = new Map<string, number>();
-  const browser = await chromium.launch({ headless: true });
-
-  try {
-    for (const provider of PROVIDERS_TO_SCRAPE) {
-      const providerPopularity = await scrapeProviderPopularity(browser, provider);
-      for (const [modelId, tokens] of providerPopularity) {
-        allPopularity.set(modelId, tokens);
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-
-  console.log(`[openrouter] Scraped popularity for ${allPopularity.size} models`);
-  return allPopularity;
-}
-
-/**
  * Parse a single OpenRouter model into our pricing format
  */
-function parseOpenRouterModel(model: OpenRouterModel, includeMetadata = false): ModelPricing | null {
+function parseOpenRouterModel(model: OpenRouterModel): ModelPricing | null {
   // Skip models with no pricing
   if (!model.pricing?.prompt || !model.pricing?.completion) {
     return null;
@@ -191,16 +81,12 @@ function parseOpenRouterModel(model: OpenRouterModel, includeMetadata = false): 
     maxOutputTokens: model.top_provider?.max_completion_tokens,
   };
 
-  if (includeMetadata && model.description) {
-    pricing.metadata = { description: model.description };
-  }
-
   return pricing;
 }
 
 /**
  * OpenRouter price crawler
- * Uses OpenRouter's public API for prices and scrapes provider pages for popularity
+ * Fetches all models from selected providers via OpenRouter's public API
  */
 export class OpenRouterCrawler extends BaseCrawler {
   readonly provider: Provider = 'openrouter';
@@ -208,92 +94,39 @@ export class OpenRouterCrawler extends BaseCrawler {
   readonly apiUrl = 'https://openrouter.ai/api/v1/models';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    // First, scrape popularity data from provider pages
-    const popularity = await scrapeAllPopularity();
-
-    // Then fetch prices from API
     const response = await withRetry(() =>
       fetchJson<OpenRouterModelsResponse>(this.apiUrl)
     );
 
-    return this.selectTopModels(response, popularity);
-  }
+    // Filter to only include models from selected providers
+    const providerSet = new Set(PROVIDERS_TO_INCLUDE);
 
-  private selectTopModels(
-    response: OpenRouterModelsResponse,
-    popularity: Map<string, number>
-  ): ModelPricing[] {
-    // Parse all models
-    const allModels = response.data
-      .map(model => parseOpenRouterModel(model, true))
+    const models = response.data
+      .filter(model => {
+        const provider = model.id.split('/')[0];
+        return providerSet.has(provider);
+      })
+      .map(model => parseOpenRouterModel(model))
       .filter((m): m is ModelPricing => m !== null);
 
-    // Create a lookup map
-    const modelMap = new Map(allModels.map(m => [m.modelId, m]));
-
-    // Group popularity by provider and find top model per provider
-    const providerTopTokens = new Map<string, number>();
-    for (const [modelId, tokens] of popularity) {
-      const provider = modelId.split('/')[0];
-      const current = providerTopTokens.get(provider) || 0;
-      if (tokens > current) {
-        providerTopTokens.set(provider, tokens);
-      }
-    }
-
-    // Sort models by popularity (tokens processed)
-    const sortedByPopularity = Array.from(popularity.entries())
-      .sort((a, b) => b[1] - a[1]);
-
-    // Select models with drop-off heuristic
-    const selectedModels: ModelPricing[] = [];
-    const selectedIds = new Set<string>();
+    // Log provider breakdown
     const providerCounts = new Map<string, number>();
-
-    for (const [modelId, tokens] of sortedByPopularity) {
-      if (selectedModels.length >= MAX_MODELS) break;
-
-      const model = modelMap.get(modelId);
-      if (!model) continue;
-
-      if (selectedIds.has(modelId)) continue;
-
-      const provider = modelId.split('/')[0];
-      const currentCount = providerCounts.get(provider) || 0;
-
-      // Hard cap per provider
-      if (currentCount >= MAX_MODELS_PER_PROVIDER) continue;
-
-      // Drop-off heuristic: skip if usage is too low compared to provider's top model
-      const topTokens = providerTopTokens.get(provider) || 0;
-      const relativeUsage = topTokens > 0 ? tokens / topTokens : 0;
-
-      if (relativeUsage < MIN_RELATIVE_USAGE) {
-        const pct = (relativeUsage * 100).toFixed(1);
-        console.log(`[openrouter] Skipping ${modelId} (only ${pct}% of top model's usage)`);
-        continue;
-      }
-
-      selectedModels.push(model);
-      selectedIds.add(modelId);
-      providerCounts.set(provider, currentCount + 1);
-
-      const tokensFormatted = tokens >= 1e9
-        ? `${(tokens / 1e9).toFixed(1)}B`
-        : `${(tokens / 1e6).toFixed(0)}M`;
-      const pct = (relativeUsage * 100).toFixed(0);
-      console.log(`[openrouter] Selected ${modelId} (${tokensFormatted} tokens, ${pct}% of top)`);
+    for (const model of models) {
+      const provider = model.modelId.split('/')[0];
+      providerCounts.set(provider, (providerCounts.get(provider) || 0) + 1);
     }
 
-    console.log(
-      `[openrouter] Found ${allModels.length} total models, selected ${selectedModels.length} by popularity`
-    );
-
-    if (selectedModels.length === 0) {
-      throw new Error('[openrouter] Could not select any models from API response');
+    console.log(`[openrouter] Found ${response.data.length} total models in API`);
+    console.log(`[openrouter] Selected ${models.length} models from ${providerCounts.size} providers:`);
+    for (const [provider, count] of Array.from(providerCounts.entries()).sort((a, b) => b[1] - a[1])) {
+      console.log(`  - ${provider}: ${count} models`);
     }
 
-    return selectedModels;
+    if (models.length === 0) {
+      throw new Error('[openrouter] No models found from selected providers');
+    }
+
+    return models;
   }
 }
 
@@ -318,7 +151,14 @@ export class OpenRouterBatchCrawler extends BaseCrawler {
       fetchJson<OpenRouterModelsResponse>(this.apiUrl)
     );
 
+    // Filter to only include models from selected providers
+    const providerSet = new Set(PROVIDERS_TO_INCLUDE);
+
     const allModels = response.data
+      .filter(model => {
+        const provider = model.id.split('/')[0];
+        return providerSet.has(provider);
+      })
       .map(model => parseOpenRouterModel(model))
       .filter((m): m is ModelPricing => m !== null);
 

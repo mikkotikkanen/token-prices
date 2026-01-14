@@ -1,0 +1,55 @@
+{
+  "current": {
+    "date": "2026-01-14",
+    "models": {
+      "x-ai/grok-4.1-fast": {
+        "input": 0.2,
+        "output": 0.5,
+        "context": 2000000,
+        "maxOutput": 30000
+      },
+      "x-ai/grok-4-fast": {
+        "input": 0.2,
+        "output": 0.5,
+        "context": 2000000,
+        "maxOutput": 30000
+      },
+      "x-ai/grok-code-fast-1": {
+        "input": 0.2,
+        "output": 1.5,
+        "context": 256000,
+        "maxOutput": 10000
+      },
+      "x-ai/grok-4": {
+        "input": 3,
+        "output": 15,
+        "context": 256000,
+        "maxOutput": null
+      },
+      "x-ai/grok-3-mini": {
+        "input": 0.3,
+        "output": 0.5,
+        "context": 131072,
+        "maxOutput": null
+      },
+      "x-ai/grok-3": {
+        "input": 3,
+        "output": 15,
+        "context": 131072,
+        "maxOutput": null
+      },
+      "x-ai/grok-3-mini-beta": {
+        "input": 0.3,
+        "output": 0.5,
+        "context": 131072,
+        "maxOutput": null
+      },
+      "x-ai/grok-3-beta": {
+        "input": 3,
+        "output": 15,
+        "context": 131072,
+        "maxOutput": null
+      }
+    }
+  }
+}

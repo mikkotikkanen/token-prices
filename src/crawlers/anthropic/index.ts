@@ -1,105 +1,160 @@
-import { BaseCrawler, parsePrice } from '../base.js';
+import { chromium } from 'playwright';
+import { BaseCrawler } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
-import { fetchHtml, withRetry } from '../../utils/http.js';
 
 /**
  * Anthropic price crawler
- * Scrapes prices from Anthropic's platform pricing page
+ * Uses Playwright to scrape prices from Anthropic's platform pricing page
  */
 export class AnthropicCrawler extends BaseCrawler {
   readonly provider: Provider = 'anthropic';
   readonly pricingUrl = 'https://platform.claude.com/docs/en/about-claude/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    const html = await withRetry(() => fetchHtml(this.pricingUrl));
-    return this.parsePricingPage(html);
-  }
+    const browser = await chromium.launch({
+      headless: true,
+      args: ['--disable-blink-features=AutomationControlled'],
+    });
 
-  private parsePricingPage(html: string): ModelPricing[] {
-    // Table format:
-    // Model | Base Input Tokens | 5m Cache Writes | 1h Cache Writes | Cache Hits & Refreshes | Output Tokens
-    // We want: Model (col 0), Base Input (col 1), Cache Hits (col 4), Output (col 5)
-    // Note: Page has multiple tables (standard, batch) - we only want the first/standard pricing
+    try {
+      const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      });
+      const page = await context.newPage();
+      await page.goto(this.pricingUrl, {
+        waitUntil: 'networkidle',
+        timeout: 30000,
+      });
 
-    const models: ModelPricing[] = [];
-    const seenModelIds = new Set<string>();
+      // Wait for the pricing table to load
+      await page.waitForSelector('table', { timeout: 10000 });
 
-    // Match table rows with 6 columns
-    // Format: <tr><td>Claude Opus 4.5</td><td>$5 / MTok</td><td>...</td><td>...</td><td>$0.50 / MTok</td><td>$25 / MTok</td></tr>
-    const rowRegex = /<tr[^>]*>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<\/tr>/gi;
+      // Extract pricing data from the "Model pricing" section
+      // Table columns: Model | Base Input Tokens | 5m Cache Writes | 1h Cache Writes | Cache Hits & Refreshes | Output Tokens
+      const models = await page.evaluate(() => {
+        const results: {
+          modelId: string;
+          modelName: string;
+          input: number;
+          output: number;
+          cached?: number;
+        }[] = [];
 
-    let match;
-    while ((match = rowRegex.exec(html)) !== null) {
-      const modelName = match[1].replace(/<[^>]+>/g, '').trim();
-      const inputStr = match[2].replace(/<[^>]+>/g, '').trim();
-      const cacheHitsStr = match[5].replace(/<[^>]+>/g, '').trim();
-      const outputStr = match[6].replace(/<[^>]+>/g, '').trim();
+        // Helper to parse price string like "$5 / MTok" to number
+        const parsePrice = (str: string): number => {
+          const match = str.match(/\$([0-9.]+)/);
+          return match ? parseFloat(match[1]) : NaN;
+        };
 
-      // Skip header rows
-      if (modelName.toLowerCase().includes('model') || !modelName.toLowerCase().includes('claude')) {
-        continue;
+        // Find the "Model pricing" heading
+        const headings = Array.from(document.querySelectorAll('h2'));
+        const modelPricingHeading = headings.find(h =>
+          h.textContent?.toLowerCase().includes('model pricing')
+        );
+
+        if (!modelPricingHeading) {
+          console.error('Could not find "Model pricing" heading');
+          return results;
+        }
+
+        // Find the next table element after this heading
+        let element: Element | null = modelPricingHeading;
+        let table: HTMLTableElement | null = null;
+
+        while (element && !table) {
+          element = element.nextElementSibling;
+          if (element?.tagName === 'TABLE') {
+            table = element as HTMLTableElement;
+          } else if (element) {
+            table = element.querySelector('table');
+          }
+        }
+
+        if (!table) {
+          console.error('Could not find pricing table after Model pricing heading');
+          return results;
+        }
+
+        // Parse the table rows
+        // Columns: Model | Base Input Tokens | 5m Cache Writes | 1h Cache Writes | Cache Hits & Refreshes | Output Tokens
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        for (const row of rows) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 6) {
+            const modelName = cells[0].textContent?.trim() || '';
+            const inputStr = cells[1].textContent?.trim() || '';  // Base Input Tokens
+            const cacheHitsStr = cells[4].textContent?.trim() || '';  // Cache Hits & Refreshes
+            const outputStr = cells[5].textContent?.trim() || '';  // Output Tokens
+
+            // Skip header rows or non-Claude models
+            if (!modelName.toLowerCase().includes('claude')) {
+              continue;
+            }
+
+            const inputPrice = parsePrice(inputStr);
+            const outputPrice = parsePrice(outputStr);
+            const cachedPrice = parsePrice(cacheHitsStr);
+
+            if (!isNaN(inputPrice) && !isNaN(outputPrice) && modelName) {
+              results.push({
+                modelId: modelName
+                  .toLowerCase()
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-z0-9\-\.]/g, '')
+                  .replace(/\(deprecated\)/g, ''),
+                modelName: modelName.replace(/\s*\(deprecated\)\s*/g, ''),
+                input: inputPrice,
+                output: outputPrice,
+                cached: !isNaN(cachedPrice) ? cachedPrice : undefined,
+              });
+            }
+          }
+        }
+
+        return results;
+      });
+
+      // Convert to ModelPricing format and dedupe
+      const allModels: ModelPricing[] = [];
+      const seenIds = new Set<string>();
+
+      for (const m of models) {
+        // Clean up model ID
+        const modelId = m.modelId.replace(/--+/g, '-').replace(/-$/, '');
+
+        if (!seenIds.has(modelId) && this.isTextModel(m.modelName)) {
+          seenIds.add(modelId);
+          allModels.push({
+            modelId: modelId,
+            modelName: m.modelName,
+            inputPricePerMillion: m.input,
+            outputPricePerMillion: m.output,
+            cachedInputPricePerMillion: m.cached,
+          });
+        }
       }
 
-      // Skip non-text models
-      if (!this.isTextModel(modelName)) {
-        continue;
+      console.log(`[anthropic] Found ${allModels.length} text models`);
+
+      if (allModels.length === 0) {
+        throw new Error('[anthropic] Could not parse any pricing from page');
       }
 
-      const modelId = this.normalizeModelId(modelName);
-
-      // Skip duplicates (batch pricing table has same models with different prices)
-      if (seenModelIds.has(modelId)) {
-        continue;
+      if (allModels.length < 3) {
+        throw new Error(`[anthropic] Only found ${allModels.length} models, expected at least 3`);
       }
 
-      const inputPrice = this.extractPrice(inputStr);
-      const outputPrice = this.extractPrice(outputStr);
-      const cachedPrice = this.extractPrice(cacheHitsStr);
-
-      if (!isNaN(inputPrice) && !isNaN(outputPrice)) {
-        seenModelIds.add(modelId);
-        models.push({
-          modelId: modelId,
-          modelName: modelName,
-          inputPricePerMillion: inputPrice,
-          outputPricePerMillion: outputPrice,
-          cachedInputPricePerMillion: !isNaN(cachedPrice) ? cachedPrice : undefined,
-        });
-      }
+      return allModels;
+    } finally {
+      await browser.close();
     }
-
-    if (models.length === 0) {
-      throw new Error('[anthropic] Could not parse any pricing from HTML');
-    }
-
-    if (models.length < 3) {
-      throw new Error(`[anthropic] Only found ${models.length} models, expected at least 3`);
-    }
-
-    return models;
-  }
-
-  private extractPrice(str: string): number {
-    // Extract price from format like "$5 / MTok" or "$0.50 / MTok"
-    const priceMatch = str.match(/\$([0-9.]+)/);
-    if (priceMatch) {
-      return parseFloat(priceMatch[1]);
-    }
-    return NaN;
   }
 
   private isTextModel(name: string): boolean {
     const n = name.toLowerCase();
-    // Include Claude text models only
+    // Exclude non-text models
     const isExcluded = ['tts', 'embedding', 'image'].some(x => n.includes(x));
-    return n.includes('claude') && !isExcluded;
-  }
-
-  private normalizeModelId(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-\.]/g, '');
+    return !isExcluded;
   }
 }
 
