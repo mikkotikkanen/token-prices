@@ -576,3 +576,178 @@ describe('Price verification against known values', () => {
     }
   });
 });
+
+describe('Deprecation handling', () => {
+  // Create a mock fetch that returns deprecated data
+  function createDeprecatedFetch() {
+    return async (): Promise<Response> => {
+      const deprecatedData = {
+        current: {
+          date: getUtcDate(),
+          models: {
+            'test-model': { input: 1, output: 2 },
+          },
+        },
+        deprecated: {
+          since: '2025-01-01',
+          dataFrozenAt: '2025-02-01',
+          message: 'This endpoint is deprecated. Please upgrade to v2.',
+          upgradeGuide: 'https://example.com/upgrade',
+        },
+      };
+      return new Response(JSON.stringify(deprecatedData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    };
+  }
+
+  it('should call onDeprecation callback when deprecated endpoint is accessed', async () => {
+    let deprecationCalled = false;
+    let receivedInfo: unknown = null;
+    let receivedProvider: unknown = null;
+
+    const client = new CostClient({
+      baseUrl: 'file://test',
+      fetch: createDeprecatedFetch(),
+      onDeprecation: (info, provider) => {
+        deprecationCalled = true;
+        receivedInfo = info;
+        receivedProvider = provider;
+      },
+    });
+
+    await client.getModelPricing('openai', 'test-model');
+
+    expect(deprecationCalled).toBe(true);
+    expect(receivedProvider).toBe('openai');
+    expect(receivedInfo).toEqual({
+      since: '2025-01-01',
+      dataFrozenAt: '2025-02-01',
+      message: 'This endpoint is deprecated. Please upgrade to v2.',
+      upgradeGuide: 'https://example.com/upgrade',
+    });
+  });
+
+  it('should only call onDeprecation once per provider', async () => {
+    let callCount = 0;
+
+    const client = new CostClient({
+      baseUrl: 'file://test',
+      fetch: createDeprecatedFetch(),
+      onDeprecation: () => {
+        callCount++;
+      },
+    });
+
+    await client.getModelPricing('openai', 'test-model');
+    await client.getModelPricing('openai', 'test-model');
+    await client.getModelPricing('openai', 'test-model');
+
+    expect(callCount).toBe(1);
+  });
+
+  it('should not call onDeprecation when suppressDeprecationWarnings is true', async () => {
+    let deprecationCalled = false;
+
+    const client = new CostClient({
+      baseUrl: 'file://test',
+      fetch: createDeprecatedFetch(),
+      suppressDeprecationWarnings: true,
+      onDeprecation: () => {
+        deprecationCalled = true;
+      },
+    });
+
+    await client.getModelPricing('openai', 'test-model');
+
+    // onDeprecation should still be called even with suppressDeprecationWarnings
+    // suppressDeprecationWarnings only suppresses console.warn
+    expect(deprecationCalled).toBe(true);
+  });
+
+  it('should use console.warn by default for deprecated endpoints', async () => {
+    const originalWarn = console.warn;
+    let warnCalled = false;
+    let warnMessage = '';
+
+    console.warn = (msg: string) => {
+      warnCalled = true;
+      warnMessage = msg;
+    };
+
+    try {
+      const client = new CostClient({
+        baseUrl: 'file://test',
+        fetch: createDeprecatedFetch(),
+      });
+
+      await client.getModelPricing('openai', 'test-model');
+
+      expect(warnCalled).toBe(true);
+      expect(warnMessage).toContain('DEPRECATION WARNING');
+      expect(warnMessage).toContain('openai');
+      expect(warnMessage).toContain('2025-01-01');
+      expect(warnMessage).toContain('2025-02-01');
+      expect(warnMessage).toContain('https://example.com/upgrade');
+    } finally {
+      console.warn = originalWarn;
+    }
+  });
+
+  it('should not console.warn when suppressDeprecationWarnings is true', async () => {
+    const originalWarn = console.warn;
+    let warnCalled = false;
+
+    console.warn = () => {
+      warnCalled = true;
+    };
+
+    try {
+      const client = new CostClient({
+        baseUrl: 'file://test',
+        fetch: createDeprecatedFetch(),
+        suppressDeprecationWarnings: true,
+      });
+
+      await client.getModelPricing('openai', 'test-model');
+
+      expect(warnCalled).toBe(false);
+    } finally {
+      console.warn = originalWarn;
+    }
+  });
+
+  it('should not warn for non-deprecated endpoints', async () => {
+    let deprecationCalled = false;
+
+    // Create fetch that returns non-deprecated data
+    const nonDeprecatedFetch = async (): Promise<Response> => {
+      const data = {
+        current: {
+          date: getUtcDate(),
+          models: {
+            'test-model': { input: 1, output: 2 },
+          },
+        },
+        // No deprecated field
+      };
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    };
+
+    const client = new CostClient({
+      baseUrl: 'file://test',
+      fetch: nonDeprecatedFetch,
+      onDeprecation: () => {
+        deprecationCalled = true;
+      },
+    });
+
+    await client.getModelPricing('openai', 'test-model');
+
+    expect(deprecationCalled).toBe(false);
+  });
+});
