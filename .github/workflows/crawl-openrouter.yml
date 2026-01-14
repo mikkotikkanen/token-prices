@@ -67,5 +67,5 @@ jobs:
         env:
           MOI_TOKEN: ${{ secrets.MOI_TOKEN }}
         run: |
-          npm install -g moi-cli
+          npm install -g moiagent-cli
           moi moi/token-costs-assistant "merge pr #${{ steps.create_pr.outputs.pr_number }}"
