@@ -111,13 +111,18 @@ git commit -m "feat!: change price format from per-token to per-million"
 
 **Release process:**
 1. Make changes and commit using conventional commits
-2. Push to `main` branch
-3. GitHub Actions runs tests, then semantic-release:
+2. Create PR to `main` branch
+3. PR is squash-merged → GitHub Actions runs tests, then semantic-release:
    - Analyzes commits since last release
    - Determines version bump
    - Updates package.json version
    - Publishes to npm with provenance
    - Creates GitHub release with changelog
+
+> **CRITICAL: PR titles MUST follow conventional commit format.** When PRs are squash-merged, GitHub uses the PR title as the commit message. If the title doesn't follow conventional commits (e.g., `feat: add feature`), semantic-release won't detect the change and no release will be triggered.
+>
+> **Good:** `feat: add OpenRouter per-provider file support`
+> **Bad:** `Add OpenRouter per-provider file support`
 
 **Manual release (if needed):**
 ```bash
