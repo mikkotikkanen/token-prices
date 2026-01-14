@@ -1,6 +1,6 @@
 {
   "provider": "google",
-  "lastCrawled": "2026-01-12T15:57:22.748Z",
+  "lastCrawled": "2026-01-14T09:25:46.390Z",
   "pricingUrl": "https://ai.google.dev/gemini-api/docs/pricing",
   "changes": [
     {
@@ -129,6 +129,216 @@
         "modelName": "gemini-2.5-computer-use-preview-10-2025",
         "inputPricePerMillion": 1.25,
         "outputPricePerMillion": 10
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-3-pro-image-preview",
+        "modelName": "gemini-3-pro-image-preview",
+        "inputPricePerMillion": 2,
+        "outputPricePerMillion": 12
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-3-pro-preview",
+        "modelName": "gemini-3-pro-preview",
+        "inputPricePerMillion": 2,
+        "outputPricePerMillion": 12,
+        "cachedInputPricePerMillion": 0.2
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-3-flash-preview",
+        "modelName": "gemini-3-flash-preview",
+        "inputPricePerMillion": 0.5,
+        "outputPricePerMillion": 3,
+        "cachedInputPricePerMillion": 0.05
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-pro",
+        "modelName": "gemini-2.5-pro",
+        "inputPricePerMillion": 1.25,
+        "outputPricePerMillion": 10,
+        "cachedInputPricePerMillion": 0.125
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash",
+        "modelName": "gemini-2.5-flash",
+        "inputPricePerMillion": 0.3,
+        "outputPricePerMillion": 2.5,
+        "cachedInputPricePerMillion": 0.03
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-preview",
+        "modelName": "gemini-2.5-flash-preview",
+        "inputPricePerMillion": 0.3,
+        "outputPricePerMillion": 2.5,
+        "cachedInputPricePerMillion": 0.03
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-lite",
+        "modelName": "gemini-2.5-flash-lite",
+        "inputPricePerMillion": 0.1,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 0.01
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-lite-preview",
+        "modelName": "gemini-2.5-flash-lite-preview",
+        "inputPricePerMillion": 0.1,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 0.01
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-native-audio",
+        "modelName": "gemini-2.5-flash-native-audio",
+        "inputPricePerMillion": 0.5,
+        "outputPricePerMillion": 2
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-image",
+        "modelName": "gemini-2.5-flash-image",
+        "inputPricePerMillion": 0.3,
+        "outputPricePerMillion": 0.039
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-2.5-computer-use-preview-10-2025",
+        "modelName": "gemini-2.5-computer-use-preview-10-2025",
+        "inputPricePerMillion": 1.25,
+        "outputPricePerMillion": 10
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "gemini-3-pro-image-preview",
+        "modelName": "gemini-3-pro-image-preview",
+        "inputPricePerMillion": 2,
+        "outputPricePerMillion": 12
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-3-flash-preview",
+        "modelName": "gemini-3-flash-preview",
+        "inputPricePerMillion": 3,
+        "outputPricePerMillion": 3
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5-pro",
+        "modelName": "gemini-2.5-pro",
+        "inputPricePerMillion": 35,
+        "outputPricePerMillion": 35,
+        "cachedInputPricePerMillion": 35
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5-flash",
+        "modelName": "gemini-2.5-flash",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 2.5,
+        "cachedInputPricePerMillion": 35
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-preview-09-2025",
+        "modelName": "gemini-2.5-flash-preview-09-2025",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 2.5,
+        "cachedInputPricePerMillion": 35
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-lite",
+        "modelName": "gemini-2.5-flash-lite",
+        "inputPricePerMillion": 0.4,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 35
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gemini-2.5-flash-lite-preview-09-2025",
+        "modelName": "gemini-2.5-flash-lite-preview-09-2025",
+        "inputPricePerMillion": 0.4,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 35
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gemini-2.0-flash",
+        "modelName": "gemini-2.0-flash",
+        "inputPricePerMillion": 0.4,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 1
+      },
+      "previousPricing": {
+        "modelId": "gemini-2.0-flash",
+        "modelName": "gemini-2.0-flash",
+        "inputPricePerMillion": 0.1,
+        "outputPricePerMillion": 0.4,
+        "cachedInputPricePerMillion": 0.025
       }
     }
   ]
