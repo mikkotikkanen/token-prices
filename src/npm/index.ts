@@ -50,6 +50,7 @@ export type {
   PriceLookupResult,
   CostResult,
   CustomProviderModels,
+  DeprecationInfo,
 } from './types.js';
 
 // Re-export client

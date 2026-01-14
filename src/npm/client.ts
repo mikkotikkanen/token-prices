@@ -13,6 +13,7 @@ import type {
   PriceLookupResult,
   CostResult,
   CustomProviderModels,
+  DeprecationInfo,
 } from './types.js';
 
 // Default URL serves from GitHub Pages when configured, falls back to raw.githubusercontent.com
@@ -90,6 +91,9 @@ export class CostClient {
   private externalCache?: CostClientOptions['externalCache'];
   private offline: boolean;
   private customProviders: Record<string, CustomProviderModels>;
+  private suppressDeprecationWarnings: boolean;
+  private onDeprecation?: (info: DeprecationInfo, provider: Provider) => void;
+  private deprecationWarningsShown: Set<Provider> = new Set();
 
   constructor(options: CostClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
@@ -98,6 +102,8 @@ export class CostClient {
     this.externalCache = options.externalCache;
     this.offline = options.offline ?? false;
     this.customProviders = options.customProviders ?? {};
+    this.suppressDeprecationWarnings = options.suppressDeprecationWarnings ?? false;
+    this.onDeprecation = options.onDeprecation;
   }
 
   /**
@@ -148,6 +154,32 @@ export class CostClient {
       await this.externalCache.set(this.getCacheKey(provider), JSON.stringify(entry));
     } catch {
       // External cache failed, continue without it
+    }
+  }
+
+  /**
+   * Handle deprecation warning for a provider
+   * Only warns once per provider per client instance
+   */
+  private handleDeprecation(data: ProviderFile, provider: Provider): void {
+    if (!data.deprecated) return;
+    if (this.deprecationWarningsShown.has(provider)) return;
+
+    this.deprecationWarningsShown.add(provider);
+
+    if (this.onDeprecation) {
+      // Custom handler provided
+      this.onDeprecation(data.deprecated, provider);
+    } else if (!this.suppressDeprecationWarnings) {
+      // Default: console.warn
+      const dep = data.deprecated;
+      let warning = `[token-costs] DEPRECATION WARNING for '${provider}': ${dep.message}`;
+      warning += `\n  Deprecated since: ${dep.since}`;
+      warning += `\n  Data frozen after: ${dep.dataFrozenAt}`;
+      if (dep.upgradeGuide) {
+        warning += `\n  Upgrade guide: ${dep.upgradeGuide}`;
+      }
+      console.warn(warning);
     }
   }
 
@@ -232,6 +264,7 @@ export class CostClient {
 
     // If we have cached data from today, use it (don't fetch again)
     if (cached && cached.fetchedDate === today) {
+      this.handleDeprecation(cached.data, provider);
       return this.mergeCustomData(cached.data, provider);
     }
 
@@ -242,6 +275,7 @@ export class CostClient {
     if (!response.ok) {
       // If fetch fails but we have cached data, use it
       if (cached) {
+        this.handleDeprecation(cached.data, provider);
         return this.mergeCustomData(cached.data, provider);
       }
       throw new Error(`Failed to fetch pricing data for ${provider}: ${response.status}`);
@@ -264,6 +298,9 @@ export class CostClient {
     const entry: CacheEntry = { data, fetchedDate: today };
     this.cache.set(provider, entry);
     await this.saveToExternalCache(provider, entry);
+
+    // Check for deprecation and warn user
+    this.handleDeprecation(data, provider);
 
     return this.mergeCustomData(data, provider);
   }

@@ -3,6 +3,20 @@
  */
 
 /**
+ * Deprecation information for API endpoints
+ */
+export interface DeprecationInfo {
+  /** ISO date when this endpoint was deprecated (YYYY-MM-DD) */
+  since: string;
+  /** ISO date when data will stop updating (YYYY-MM-DD) */
+  dataFrozenAt: string;
+  /** Warning message to display to users */
+  message: string;
+  /** URL to upgrade instructions (optional) */
+  upgradeGuide?: string;
+}
+
+/**
  * Variant pricing for resolution/quality dependent models
  */
 export interface VariantPricing {
@@ -55,6 +69,8 @@ export interface ProviderFile {
   current: ProviderData;
   /** Previous day's data (for fallback during updates) */
   previous?: ProviderData;
+  /** Deprecation information (if this endpoint is deprecated) */
+  deprecated?: DeprecationInfo;
 }
 
 /**
@@ -163,6 +179,29 @@ export interface CostClientOptions {
     get: (key: string) => Promise<string | undefined> | string | undefined;
     set: (key: string, value: string) => Promise<void> | void;
   };
+
+  /**
+   * Suppress deprecation warnings.
+   * When true, deprecated endpoints won't trigger console warnings.
+   * @default false
+   */
+  suppressDeprecationWarnings?: boolean;
+
+  /**
+   * Custom handler for deprecation notices.
+   * Called when a deprecated endpoint is accessed.
+   * If provided, this is called instead of (not in addition to) console.warn.
+   *
+   * @example
+   * ```ts
+   * new CostClient({
+   *   onDeprecation: (info, provider) => {
+   *     myLogger.warn(`[token-costs] ${provider}: ${info.message}`);
+   *   }
+   * });
+   * ```
+   */
+  onDeprecation?: (info: DeprecationInfo, provider: Provider) => void;
 }
 
 /**
