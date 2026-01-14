@@ -1,0 +1,37 @@
+{
+  "current": {
+    "date": "2026-01-14",
+    "models": {
+      "moonshotai/kimi-k2-thinking": {
+        "input": 0.4,
+        "output": 1.75,
+        "context": 262144,
+        "maxOutput": 65535
+      },
+      "moonshotai/kimi-k2-0905": {
+        "input": 0.39,
+        "output": 1.9,
+        "context": 262144,
+        "maxOutput": 262144
+      },
+      "moonshotai/kimi-k2-0905:exacto": {
+        "input": 0.6,
+        "output": 2.5,
+        "context": 262144,
+        "maxOutput": null
+      },
+      "moonshotai/kimi-k2": {
+        "input": 0.5,
+        "output": 2.4,
+        "context": 131072,
+        "maxOutput": null
+      },
+      "moonshotai/kimi-dev-72b": {
+        "input": 0.29,
+        "output": 1.15,
+        "context": 131072,
+        "maxOutput": 131072
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "current": {
+    "date": "2026-01-14",
+    "models": {
+      "anthropic/claude-opus-4.5": {
+        "input": 5,
+        "output": 25,
+        "context": 200000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-haiku-4.5": {
+        "input": 1,
+        "output": 5,
+        "context": 200000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-sonnet-4.5": {
+        "input": 3,
+        "output": 15,
+        "context": 1000000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-opus-4.1": {
+        "input": 15,
+        "output": 75,
+        "context": 200000,
+        "maxOutput": 32000
+      },
+      "anthropic/claude-opus-4": {
+        "input": 15,
+        "output": 75,
+        "context": 200000,
+        "maxOutput": 32000
+      },
+      "anthropic/claude-sonnet-4": {
+        "input": 3,
+        "output": 15,
+        "context": 1000000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-3.7-sonnet:thinking": {
+        "input": 3,
+        "output": 15,
+        "context": 200000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-3.7-sonnet": {
+        "input": 3,
+        "output": 15,
+        "context": 200000,
+        "maxOutput": 64000
+      },
+      "anthropic/claude-3.5-haiku-20241022": {
+        "input": 0.8,
+        "output": 4,
+        "context": 200000,
+        "maxOutput": 8192
+      },
+      "anthropic/claude-3.5-haiku": {
+        "input": 0.8,
+        "output": 4,
+        "context": 200000,
+        "maxOutput": 8192
+      },
+      "anthropic/claude-3.5-sonnet": {
+        "input": 6,
+        "output": 30,
+        "context": 200000,
+        "maxOutput": 8192
+      },
+      "anthropic/claude-3-haiku": {
+        "input": 0.25,
+        "output": 1.25,
+        "context": 200000,
+        "maxOutput": 4096
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "current": {
+    "date": "2026-01-14",
+    "models": {
+      "z-ai/glm-4.7": {
+        "input": 0.4,
+        "output": 1.5,
+        "context": 202752,
+        "maxOutput": 65535
+      },
+      "z-ai/glm-4.6v": {
+        "input": 0.3,
+        "output": 0.9,
+        "context": 131072,
+        "maxOutput": 131072
+      },
+      "z-ai/glm-4.6": {
+        "input": 0.35,
+        "output": 1.5,
+        "context": 202752,
+        "maxOutput": 65536
+      },
+      "z-ai/glm-4.6:exacto": {
+        "input": 0.44,
+        "output": 1.76,
+        "context": 204800,
+        "maxOutput": 131072
+      },
+      "z-ai/glm-4.5v": {
+        "input": 0.6,
+        "output": 1.8,
+        "context": 65536,
+        "maxOutput": 16384
+      },
+      "z-ai/glm-4.5": {
+        "input": 0.35,
+        "output": 1.55,
+        "context": 131072,
+        "maxOutput": 65536
+      },
+      "z-ai/glm-4.5-air": {
+        "input": 0.05,
+        "output": 0.22,
+        "context": 131072,
+        "maxOutput": 131072
+      },
+      "z-ai/glm-4-32b": {
+        "input": 0.1,
+        "output": 0.1,
+        "context": 128000,
+        "maxOutput": null
+      }
+    }
+  }
+}
