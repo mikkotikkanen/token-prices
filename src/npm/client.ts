@@ -110,7 +110,8 @@ export class CostClient {
    * Check if a provider is a built-in provider with remote data
    */
   private isBuiltInProvider(provider: Provider): provider is BuiltInProvider {
-    return ['openai', 'anthropic', 'google', 'openrouter'].includes(provider);
+    return ['openai', 'anthropic', 'google', 'openrouter'].includes(provider)
+      || provider.startsWith('openrouter/');
   }
 
   /**
@@ -219,11 +220,20 @@ export class CostClient {
 
   /**
    * Fetch provider data, using cache if available and fresh
+   * @param provider - The provider to fetch
+   * @param modelId - Optional model ID, used to extract sub-provider for OpenRouter
    */
-  private async fetchProvider(provider: Provider): Promise<ProviderFile> {
+  private async fetchProvider(provider: Provider, modelId?: string): Promise<ProviderFile> {
+    // For openrouter, extract sub-provider from model ID (e.g., 'anthropic/claude-3.5-sonnet' -> 'openrouter/anthropic')
+    let effectiveProvider = provider;
+    if (provider === 'openrouter' && modelId && modelId.includes('/')) {
+      const subProvider = modelId.split('/')[0];
+      effectiveProvider = `openrouter/${subProvider}`;
+    }
+
     const today = this.getToday();
-    const isBuiltIn = this.isBuiltInProvider(provider);
-    const hasCustomData = provider in this.customProviders;
+    const isBuiltIn = this.isBuiltInProvider(effectiveProvider);
+    const hasCustomData = effectiveProvider in this.customProviders;
 
     // Offline mode: only use custom data
     if (this.offline) {
@@ -250,35 +260,35 @@ export class CostClient {
 
     // Built-in provider: fetch from remote (with caching)
     // Check in-memory cache first
-    let cached = this.cache.get(provider);
+    let cached = this.cache.get(effectiveProvider);
 
     // If no in-memory cache, try external cache
     if (!cached && this.externalCache) {
-      const external = await this.loadFromExternalCache(provider);
+      const external = await this.loadFromExternalCache(effectiveProvider);
       if (external) {
         cached = external;
         // Populate in-memory cache from external
-        this.cache.set(provider, external);
+        this.cache.set(effectiveProvider, external);
       }
     }
 
     // If we have cached data from today, use it (don't fetch again)
     if (cached && cached.fetchedDate === today) {
-      this.handleDeprecation(cached.data, provider);
+      this.handleDeprecation(cached.data, effectiveProvider);
       return this.mergeCustomData(cached.data, provider);
     }
 
     // Try to fetch fresh data
-    const url = `${this.baseUrl}/${provider}.json`;
+    const url = `${this.baseUrl}/${effectiveProvider}.json`;
     const response = await this.fetchFn(url);
 
     if (!response.ok) {
       // If fetch fails but we have cached data, use it
       if (cached) {
-        this.handleDeprecation(cached.data, provider);
+        this.handleDeprecation(cached.data, effectiveProvider);
         return this.mergeCustomData(cached.data, provider);
       }
-      throw new Error(`Failed to fetch pricing data for ${provider}: ${response.status}`);
+      throw new Error(`Failed to fetch pricing data for ${effectiveProvider}: ${response.status}`);
     }
 
     const data = (await response.json()) as ProviderFile;
@@ -296,11 +306,11 @@ export class CostClient {
 
     // Cache the data with today's date so we don't fetch again today
     const entry: CacheEntry = { data, fetchedDate: today };
-    this.cache.set(provider, entry);
-    await this.saveToExternalCache(provider, entry);
+    this.cache.set(effectiveProvider, entry);
+    await this.saveToExternalCache(effectiveProvider, entry);
 
     // Check for deprecation and warn user
-    this.handleDeprecation(data, provider);
+    this.handleDeprecation(data, effectiveProvider);
 
     return this.mergeCustomData(data, provider);
   }
@@ -323,7 +333,7 @@ export class CostClient {
    * @throws Error if model is not found
    */
   async getModelPricing(provider: Provider, modelId: string): Promise<PriceLookupResult> {
-    const file = await this.fetchProvider(provider);
+    const file = await this.fetchProvider(provider, modelId);
     const data = this.getEffectiveData(file);
     const pricing = data.models[modelId];
 
