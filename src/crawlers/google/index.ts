@@ -4,7 +4,8 @@ import { fetchHtml, withRetry } from '../../utils/http.js';
 
 /**
  * Google/Gemini price crawler
- * Scrapes prices from Google AI's Gemini API pricing page
+ * Scrapes prices from Google AI's Gemini API pricing page using HTTP fetch
+ * (Playwright approach didn't work well for this page's structure)
  */
 export class GoogleCrawler extends BaseCrawler {
   readonly provider: Provider = 'google';
@@ -16,57 +17,68 @@ export class GoogleCrawler extends BaseCrawler {
   }
 
   private parsePricingPage(html: string): ModelPricing[] {
-    // Page structure: each model has an h2 with id="gemini-{model-name}"
-    // followed by a pricing table with rows for Input price, Output price, Context caching price
-    // We extract from the "Paid Tier" column
-
-    const sections = html.split(/<h2[^>]*id="gemini-/);
     const models: ModelPricing[] = [];
+    const seenIds = new Set<string>();
 
-    for (let i = 1; i < sections.length; i++) {
-      const section = sections[i];
-      const idMatch = section.match(/^([^"]+)"/);
-      if (!idMatch) continue;
+    // Strategy 1: Find model sections by h2 headings with model names
+    // Look for pattern: <h2...>Model Name</h2> followed by <code>model-id</code>
+    // Then find the pricing table with Input price, Output price rows
 
-      const modelId = 'gemini-' + idMatch[1];
+    // Extract all model sections - each has an h2 heading followed by code element with model ID
+    // Pattern: heading text, then <code>model-id</code>, then pricing table
 
-      // Skip non-model IDs (CSS classes, images, etc.)
-      if (modelId.includes('api-') || modelId.includes('.svg') || modelId.includes('.png')) continue;
+    // Find all code elements that look like model IDs (gemini-*, gemma-*)
+    const codeMatches = html.matchAll(/<code[^>]*>(gemini-[^<]+|gemma-[^<]+)<\/code>/gi);
 
-      // Get content until next h2
-      const content = section.substring(0, section.indexOf('<h2') > 0 ? section.indexOf('<h2') : 10000);
+    for (const codeMatch of codeMatches) {
+      const modelId = codeMatch[1].trim();
+      if (seenIds.has(modelId)) continue;
 
-      // Find the pricing table
-      const tableMatch = content.match(/<table[\s\S]*?<\/table>/);
+      // Find the position of this model ID in the HTML
+      const codePos = codeMatch.index || 0;
+
+      // Look backwards to find the h2 heading
+      const beforeCode = html.substring(Math.max(0, codePos - 500), codePos);
+      const h2Match = beforeCode.match(/<h2[^>]*>([^<]+)<\/h2>\s*$/i) ||
+                      beforeCode.match(/<h2[^>]*>.*?([^>]+)<\/h2>\s*<em/i);
+
+      // Look forward to find the pricing table (within next 5000 chars or until next h2)
+      const afterCode = html.substring(codePos, Math.min(html.length, codePos + 5000));
+      const nextH2Pos = afterCode.search(/<h2[^>]*>/i);
+      const searchArea = nextH2Pos > 0 ? afterCode.substring(0, nextH2Pos) : afterCode;
+
+      // Find pricing table
+      const tableMatch = searchArea.match(/<table[\s\S]*?<\/table>/i);
       if (!tableMatch) continue;
 
       const table = tableMatch[0];
 
-      // Extract prices from "Paid Tier" column (second td in each row)
-      const inputMatch = table.match(/Input price[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i);
-      const outputMatch = table.match(/Output price[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i);
-      const cachingMatch = table.match(/Context caching price[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i);
+      // Extract prices from table
+      // Table format: rows with "Input price", "Output price", "Context caching price"
+      // Columns: [Label] | Free Tier | Paid Tier
+      const inputMatch = table.match(/Input price[\s\S]*?<td[^>]*>[^<]*<\/td>[\s\S]*?<td[^>]*>([^<]*\$[0-9.]+[^<]*)<\/td>/i);
+      const outputMatch = table.match(/Output price[\s\S]*?<td[^>]*>[^<]*<\/td>[\s\S]*?<td[^>]*>([^<]*\$[0-9.]+[^<]*)<\/td>/i);
+      const cachingMatch = table.match(/(?:Context caching|caching) price[\s\S]*?<td[^>]*>[^<]*<\/td>[\s\S]*?<td[^>]*>([^<]*\$[0-9.]+[^<]*)<\/td>/i);
 
       if (inputMatch && outputMatch) {
-        const inputCell = inputMatch[1].replace(/<[^>]+>/g, '');
-        const outputCell = outputMatch[1].replace(/<[^>]+>/g, '');
-        const cachingCell = cachingMatch ? cachingMatch[1].replace(/<[^>]+>/g, '') : '';
+        const inputPrice = this.extractPrice(inputMatch[1]);
+        const outputPrice = this.extractPrice(outputMatch[1]);
+        const cachedPrice = cachingMatch ? this.extractPrice(cachingMatch[1]) : undefined;
 
-        const inputPrice = inputCell.match(/\$([0-9.]+)/);
-        const outputPrice = outputCell.match(/\$([0-9.]+)/);
-        const cachingPrice = cachingCell.match(/\$([0-9.]+)/);
-
-        if (inputPrice && outputPrice && this.isTextModel(modelId)) {
+        if (!isNaN(inputPrice) && !isNaN(outputPrice) && this.isTextModel(modelId)) {
+          seenIds.add(modelId);
           models.push({
-            modelId: modelId,
+            modelId,
             modelName: modelId,
-            inputPricePerMillion: parseFloat(inputPrice[1]),
-            outputPricePerMillion: parseFloat(outputPrice[1]),
-            cachedInputPricePerMillion: cachingPrice ? parseFloat(cachingPrice[1]) : undefined,
+            inputPricePerMillion: inputPrice,
+            outputPricePerMillion: outputPrice,
+            cachedInputPricePerMillion: cachedPrice,
           });
         }
       }
     }
+
+    console.log(`[google] Found ${models.length} text models`);
 
     if (models.length === 0) {
       throw new Error('[google] Could not parse any pricing from HTML');
@@ -79,10 +91,24 @@ export class GoogleCrawler extends BaseCrawler {
     return models;
   }
 
+  private extractPrice(str: string): number {
+    const match = str.match(/\$([0-9.]+)/);
+    return match ? parseFloat(match[1]) : NaN;
+  }
+
   private isTextModel(modelId: string): boolean {
     const n = modelId.toLowerCase();
-    // Exclude TTS, embedding, robotics, image-only models
-    const isExcluded = ['tts', 'embedding', 'robotics', 'image-preview'].some(x => n.includes(x));
+    // Exclude non-text models
+    const isExcluded = [
+      'tts',
+      'embedding',
+      'robotics',
+      'image',
+      'imagen',
+      'veo',
+      'audio',
+      'computer-use',
+    ].some(x => n.includes(x));
     return !isExcluded;
   }
 }
