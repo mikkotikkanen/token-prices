@@ -23,6 +23,9 @@ const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
   outputTokens: 800,
 });
 console.log(`Total cost: $${cost.totalCost.toFixed(6)}`);
+
+// OpenRouter models use provider/model format
+const orPricing = await client.getModelPricing('openrouter', 'anthropic/claude-3.5-sonnet');
 ```
 
 Or fetch directly without dependencies:
@@ -92,7 +95,7 @@ token-costs/
 - `api/v1/openai.json`
 - `api/v1/anthropic.json`
 - `api/v1/google.json`
-- `api/v1/openrouter.json`
+- `api/v1/openrouter/{provider}.json` - Per-provider files (anthropic, openai, google, deepseek, etc.)
 
 ## Contributing
 

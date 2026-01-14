@@ -696,4 +696,118 @@ describe('Deprecation handling', () => {
 
     expect(deprecationCalled).toBe(false);
   });
+
+  describe('OpenRouter sub-provider support', () => {
+    it('should extract sub-provider from model ID and fetch correct file', async () => {
+      const fetchedUrls: string[] = [];
+      const today = getUtcDate();
+
+      const mockFetch = async (url: string): Promise<Response> => {
+        fetchedUrls.push(url);
+
+        // Return mock data for openrouter/anthropic.json
+        if (url.includes('openrouter/anthropic.json')) {
+          const data: ProviderFile = {
+            current: {
+              date: today,
+              models: {
+                'anthropic/claude-3.5-sonnet': { input: 3.0, output: 15.0 },
+              },
+            },
+          };
+          return new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+
+        return new Response('Not found', { status: 404 });
+      };
+
+      const client = new CostClient({
+        baseUrl: 'https://example.com/api/v1',
+        fetch: mockFetch,
+      });
+
+      const result = await client.getModelPricing('openrouter', 'anthropic/claude-3.5-sonnet');
+
+      // Should have fetched from the sub-provider URL
+      expect(fetchedUrls).toContain('https://example.com/api/v1/openrouter/anthropic.json');
+      expect(result.pricing.input).toBe(3.0);
+      expect(result.pricing.output).toBe(15.0);
+    });
+
+    it('should cache sub-providers separately', async () => {
+      let fetchCount = 0;
+      const today = getUtcDate();
+
+      const mockFetch = async (url: string): Promise<Response> => {
+        fetchCount++;
+
+        const data: ProviderFile = {
+          current: {
+            date: today,
+            models: url.includes('anthropic')
+              ? { 'anthropic/claude-3.5-sonnet': { input: 3.0, output: 15.0 } }
+              : { 'openai/gpt-4o': { input: 5.0, output: 15.0 } },
+          },
+        };
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      const client = new CostClient({
+        baseUrl: 'https://example.com/api/v1',
+        fetch: mockFetch,
+      });
+
+      // Fetch anthropic model twice - second should be cached
+      await client.getModelPricing('openrouter', 'anthropic/claude-3.5-sonnet');
+      await client.getModelPricing('openrouter', 'anthropic/claude-3.5-sonnet');
+      expect(fetchCount).toBe(1);
+
+      // Fetch openai model - should trigger new fetch (different sub-provider)
+      await client.getModelPricing('openrouter', 'openai/gpt-4o');
+      expect(fetchCount).toBe(2);
+
+      // Fetch openai again - should be cached
+      await client.getModelPricing('openrouter', 'openai/gpt-4o');
+      expect(fetchCount).toBe(2);
+    });
+
+    it('should support explicit openrouter/provider syntax for getProviderModels', async () => {
+      const fetchedUrls: string[] = [];
+      const today = getUtcDate();
+
+      const mockFetch = async (url: string): Promise<Response> => {
+        fetchedUrls.push(url);
+
+        const data: ProviderFile = {
+          current: {
+            date: today,
+            models: {
+              'anthropic/claude-3.5-sonnet': { input: 3.0, output: 15.0 },
+              'anthropic/claude-3-opus': { input: 15.0, output: 75.0 },
+            },
+          },
+        };
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      const client = new CostClient({
+        baseUrl: 'https://example.com/api/v1',
+        fetch: mockFetch,
+      });
+
+      const models = await client.getProviderModels('openrouter/anthropic');
+
+      expect(fetchedUrls).toContain('https://example.com/api/v1/openrouter/anthropic.json');
+      expect(Object.keys(models)).toHaveLength(2);
+    });
+  });
 });
