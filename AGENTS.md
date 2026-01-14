@@ -41,6 +41,8 @@ npm run generate:npm   # Generate API files from history
 
 ## Branching Workflow
 
+> **CRITICAL: Branches are deleted after PRs are merged.** Before making ANY commits, always verify you're on the correct branch with `git branch`. If you're on an old/merged branch, your commits will be orphaned or lost. When starting new work, ALWAYS create a fresh branch from `origin/main`.
+
 **Every feature/fix should be done in its own branch.** This ensures:
 - Clean git history with clear merge points
 - Ability to revert individual features if needed
@@ -79,6 +81,8 @@ git branch -d feat/my-feature
 - Push multiple unrelated changes in one branch
 - Continue adding commits to a branch after its PR is merged
 - Reuse old branches for new features
+- Start working without first checking which branch you're on (`git branch`)
+- Assume you're on the right branch - ALWAYS verify before committing
 
 ---
 
