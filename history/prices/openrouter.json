@@ -1,6 +1,6 @@
 {
   "provider": "openrouter",
-  "lastCrawled": "2026-01-14T09:26:06.602Z",
+  "lastCrawled": "2026-01-14T17:57:27.796Z",
   "pricingUrl": "https://openrouter.ai/models",
   "changes": [
     {
@@ -2041,6 +2041,18 @@
         "outputPricePerMillion": 60,
         "contextWindow": 8191,
         "maxOutputTokens": 4096
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "changeType": "removed",
+      "pricing": {
+        "modelId": "anthropic/claude-3.5-haiku-20241022",
+        "modelName": "Anthropic: Claude 3.5 Haiku (2024-10-22)",
+        "inputPricePerMillion": 0.8,
+        "outputPricePerMillion": 4,
+        "contextWindow": 200000,
+        "maxOutputTokens": 8192
       }
     }
   ]

@@ -50,12 +50,6 @@
         "context": 200000,
         "maxOutput": 64000
       },
-      "anthropic/claude-3.5-haiku-20241022": {
-        "input": 0.8,
-        "output": 4,
-        "context": 200000,
-        "maxOutput": 8192
-      },
       "anthropic/claude-3.5-haiku": {
         "input": 0.8,
         "output": 4,
