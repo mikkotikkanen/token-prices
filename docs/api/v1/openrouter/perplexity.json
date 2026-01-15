@@ -1,5 +1,40 @@
 {
   "current": {
+    "date": "2026-01-15",
+    "models": {
+      "perplexity/sonar-pro-search": {
+        "input": 3,
+        "output": 15,
+        "context": 200000,
+        "maxOutput": 8000
+      },
+      "perplexity/sonar-reasoning-pro": {
+        "input": 2,
+        "output": 8,
+        "context": 128000,
+        "maxOutput": null
+      },
+      "perplexity/sonar-pro": {
+        "input": 3,
+        "output": 15,
+        "context": 200000,
+        "maxOutput": 8000
+      },
+      "perplexity/sonar-deep-research": {
+        "input": 2,
+        "output": 8,
+        "context": 128000,
+        "maxOutput": null
+      },
+      "perplexity/sonar": {
+        "input": 1,
+        "output": 1,
+        "context": 127072,
+        "maxOutput": null
+      }
+    }
+  },
+  "previous": {
     "date": "2026-01-14",
     "models": {
       "perplexity/sonar-pro-search": {
