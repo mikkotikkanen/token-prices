@@ -1,6 +1,6 @@
 {
   "provider": "openrouter",
-  "lastCrawled": "2026-01-17T00:24:09.688Z",
+  "lastCrawled": "2026-01-18T00:28:07.628Z",
   "pricingUrl": "https://openrouter.ai/models",
   "changes": [
     {
@@ -2513,6 +2513,46 @@
         "outputPricePerMillion": 6.4,
         "contextWindow": 32768,
         "maxOutputTokens": 8192
+      }
+    },
+    {
+      "date": "2026-01-18",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "qwen/qwen3-next-80b-a3b-thinking",
+        "modelName": "Qwen: Qwen3 Next 80B A3B Thinking",
+        "inputPricePerMillion": 0.15,
+        "outputPricePerMillion": 1.2,
+        "contextWindow": 128000,
+        "maxOutputTokens": null
+      },
+      "previousPricing": {
+        "modelId": "qwen/qwen3-next-80b-a3b-thinking",
+        "modelName": "Qwen: Qwen3 Next 80B A3B Thinking",
+        "inputPricePerMillion": 0.15,
+        "outputPricePerMillion": 1.2,
+        "contextWindow": 262144,
+        "maxOutputTokens": 262144
+      }
+    },
+    {
+      "date": "2026-01-18",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "deepseek/deepseek-r1-0528",
+        "modelName": "DeepSeek: R1 0528",
+        "inputPricePerMillion": 0.4,
+        "outputPricePerMillion": 1.75,
+        "contextWindow": 163840,
+        "maxOutputTokens": 65536
+      },
+      "previousPricing": {
+        "modelId": "deepseek/deepseek-r1-0528",
+        "modelName": "DeepSeek: R1 0528",
+        "inputPricePerMillion": 0.45,
+        "outputPricePerMillion": 2.15,
+        "contextWindow": 131072,
+        "maxOutputTokens": 32768
       }
     }
   ]
